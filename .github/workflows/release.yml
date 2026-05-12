@@ -22,7 +22,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "26.x"
-          registry-url: "https://registry.npmjs.org"
           cache: "npm"
       - run: npm ci
       - run: |
@@ -33,5 +32,3 @@ jobs:
       - run: npm run ci
       - run: git push origin main v${{ inputs.version }}
       - run: npm publish --provenance --access=public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
