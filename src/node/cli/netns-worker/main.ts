@@ -1,0 +1,45 @@
+import { createServer } from "node:net";
+import { NetnsWorkerRequest, NetnsWorkerResponse, RequestId } from "../../netnsWorker/types";
+import { createSocket } from "node:dgram";
+
+if (process.connected) {
+  const sendResponse = <T>(response: NetnsWorkerResponse<T> & RequestId, handler?: any) => {
+    process.send!(response, handler);
+  };
+  process.on("message", async ({ requestId, ...params }: NetnsWorkerRequest & RequestId) => {
+    try {
+      switch (params.type) {
+        case "create-tcp-server": {
+          const server = createServer();
+          server.listen(params.port, params.host);
+          await new Promise((resolve, reject) => server.on("listening", resolve).on("error", reject));
+          sendResponse({ requestId, success: true, result: true }, server);
+          server.close();
+          break;
+        }
+        case "create-udp-socket": {
+          const socket = createSocket(params.options);
+          socket.bind(params.port, params.host);
+          await new Promise((resolve, reject) => socket.on("listening", resolve).on("error", reject));
+          sendResponse({ requestId, success: true, result: true }, socket);
+          socket.close();
+          break;
+        }
+        default:
+          throw new Error("Unknown message type");
+      }
+    } catch (error: any) {
+      sendResponse({
+        requestId,
+        success: false,
+        error: {
+          code: error.code,
+          message: error.message ?? `${error}`,
+        },
+      });
+    }
+  });
+  process.on("disconnect", () => {
+    process.exit(0);
+  });
+}

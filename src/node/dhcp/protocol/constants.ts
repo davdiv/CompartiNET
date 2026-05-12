@@ -1,0 +1,48 @@
+export const BOOTP_OP = {
+  BOOTREQUEST: 1,
+  BOOTREPLY: 2,
+} as const;
+
+export const HARDWARE_TYPE = {
+  ETHERNET: 1,
+} as const;
+
+export const DHCP_MESSAGE_TYPE = {
+  DHCPDISCOVER: 1,
+  DHCPOFFER: 2,
+  DHCPREQUEST: 3,
+  DHCPDECLINE: 4,
+  DHCPACK: 5,
+  DHCPNAK: 6,
+  DHCPRELEASE: 7,
+  DHCPINFORM: 8,
+} as const;
+
+export const DHCP_OPTION = {
+  PAD: 0,
+  SUBNET_MASK: 1,
+  ROUTER: 3,
+  DOMAIN_NAME_SERVER: 6,
+  HOST_NAME: 12,
+  REQUESTED_IP_ADDRESS: 50,
+  IP_ADDRESS_LEASE_TIME: 51,
+  MESSAGE_TYPE: 53,
+  SERVER_IDENTIFIER: 54,
+  PARAMETER_REQUEST_LIST: 55,
+  RENEWAL_TIME: 58,
+  REBINDING_TIME: 59,
+  CLIENT_IDENTIFIER: 61,
+  END: 255,
+} as const;
+
+export const DHCP_PORT = {
+  SERVER: 67,
+  CLIENT: 68,
+} as const;
+
+export const DHCP_MAGIC_COOKIE = 0x63825363;
+
+export const BOOTP_HEADER_LENGTH = 236;
+export const DHCP_FLAG_BROADCAST = 0x8000;
+
+export const MIN_DHCP_PACKET_SIZE = 300;

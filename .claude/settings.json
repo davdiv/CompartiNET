@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run full-check)",
+      "Bash(npm run lint)",
+      "Bash(npm run test)",
+      "Bash(npm run test:unit)",
+      "Bash(npm run test:integration)",
+      "Bash(npm run test:unit *)",
+      "Bash(npm run test:integration *)",
+      "Bash(npm run type-check)",
+      "Bash(npm run build)",
+      "Bash(npm run build:node)",
+      "Bash(npm run format:check)",
+      "Bash(npm run format:fix)",
+      "Bash(./tests/runInContainer.sh *)",
+      "Bash(npx prettier --write *)"
+    ]
+  }
+}

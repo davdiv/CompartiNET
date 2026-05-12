@@ -1,0 +1,55 @@
+{
+  "name": "compartinet",
+  "type": "module",
+  "author": "DivDE <divde@musicociel.fr>",
+  "description": "Experimental reactive network manager written in typescript with support for network namespaces. Integrates with systemd.",
+  "keywords": [
+    "network",
+    "wireguard",
+    "bridge",
+    "veth",
+    "vlan",
+    "netns",
+    "systemd"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davdiv/compartinet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davdiv/compartinet/issues"
+  },
+  "homepage": "https://github.com/davdiv/compartinet#readme",
+  "scripts": {
+    "build": "npm run build:node",
+    "build:node": "vite build -c vite.node.config.ts",
+    "type-check": "tsc",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "vitest --project unit --coverage.enabled --coverage.reportsDirectory=coverage/unit run",
+    "test:integration": "./tests/runInContainer.sh npx vitest --project integration --coverage.enabled --coverage.reportsDirectory=coverage/integration run",
+    "sandbox": "./tests/runInContainer.sh -ti ./tests/sandboxConfig.sh",
+    "lint": "eslint .",
+    "format:fix": "prettier --write .",
+    "format:check": "prettier --check .",
+    "full-check": "npm run type-check && npm run build && npm run test && npm run lint && npm run format:check"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@eslint/js": "^10.0.1",
+    "@rolldown/plugin-babel": "^0.2.3",
+    "@types/node": "^25.6.2",
+    "@vitest/coverage-v8": "^4.1.5",
+    "ajv": "^8.20.0",
+    "eslint": "^10.2.1",
+    "ipaddr.js": "^2.3.0",
+    "prettier": "^3.8.3",
+    "signalium": "^3.0.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.2",
+    "typescript-json-schema": "^0.67.2",
+    "vite": "^8.0.11",
+    "vitest": "^4.1.5",
+    "yaml": "^2.8.4"
+  }
+}

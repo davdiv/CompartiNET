@@ -1,0 +1,177 @@
+# yaml-language-server: $schema=./dist/config-schema.json
+# CompartiNET sample configuration
+# Place in /etc/compartinet/config.d/
+
+# ============================================================
+#    Network Namespace
+#    Creates an isolated network namespace.
+# ============================================================
+- type: CreateNamespace
+  netns: my-netns
+
+# ============================================================
+#    Bridge Interface
+#    Creates a bridge with optional VLAN filtering and STP.
+# ============================================================
+- type: CreateBridge
+  netns: my-netns
+  iface: br0
+  vlanFiltering: true # enable 802.1Q VLAN filtering (default: false)
+  stp: false # Spanning Tree Protocol (default: false)
+
+# ============================================================
+#    Veth Pair
+#    Creates a pair of connected virtual Ethernet devices.
+#    They can be in the same namespace or across two namespaces.
+# ============================================================
+- type: CreateVeth
+  netns: my-netns
+  iface: veth0
+  peerNetns: my-netns # peer namespace (may differ from netns)
+  peerIface: veth1
+
+# ============================================================
+#    Bridge Port
+#    Attaches an interface as a port of a bridge.
+#    The kernel assigns VLAN 1 untagged / PVID by default.
+# ============================================================
+- type: AddBridgePort
+  netns: my-netns
+  iface: veth0 # interface to attach
+  bridge: br0 # target bridge
+
+# ============================================================
+#    Bridge Port VLAN
+#    Assigns a VLAN to a bridge port. Use self: true for the bridge itself.
+#    Set untagged: true for untagged egress / PVID if pvid: true.
+# ============================================================
+- type: AddBridgePortVlan
+  netns: my-netns
+  iface: veth0
+  vlanId: 100
+  untagged: false
+  # pvid: false          # optional, set as the port's primary VLAN ID
+  # self: false          # optional, target the bridge itself instead of a port
+
+# ============================================================
+#    Interface Altname
+#    Adds an alternate name (alias) for an interface.
+#    Altnames can be used as interface references in most actions.
+# ============================================================
+- type: AddAltname
+  netns: ""
+  iface: eth-guest
+  altname: guest-nic
+
+# ============================================================
+#    IP Address
+#    Assigns an IP address to an interface.
+# ============================================================
+- type: AddIpAddress
+  netns: my-netns
+  iface: br0
+  ip:
+    family: ipv4
+    address: 192.168.100.1
+    prefixLength: 24
+
+- type: AddIpAddress
+  netns: my-netns
+  iface: br0
+  ip:
+    family: ipv6
+    address: fd00:100::1
+    prefixLength: 64
+
+# ============================================================
+#    Static Route
+# ============================================================
+- type: AddRoute
+  netns: my-netns
+  route:
+    family: ipv4
+    address: 10.0.0.0
+    prefixLength: 8
+    gateway: 192.168.100.254
+    iface: br0
+    # onlink: false      # optional, treat gateway as directly reachable
+    # metric: 100        # optional, route metric/priority
+
+# ============================================================
+#    WireGuard Interface
+#    First create the interface in its birth namespace
+#    (where encrypted packets will be sent and received)
+#    then move it in its operating namespace
+#    (where decrypted packets will be)
+#    and set its configuration.
+# ============================================================
+- type: CreateWireguard
+  netns: my-netns
+  iface: wg0
+
+- type: MoveInterface
+  oldNetns: my-netns
+  oldIface: wg0
+  newNetns: "" # default/root namespace
+  newIface: wg0
+
+- type: SetWireguardConfig
+  netns: ""
+  iface: wg0
+  config:
+    privateKey: "YOUR_BASE64_PRIVATE_KEY_HERE"
+    listenPort: 51820
+    # fwMark: 0          # optional firewall mark
+    peers:
+      - publicKey: "PEER_BASE64_PUBLIC_KEY_HERE"
+        # presharedKey: "OPTIONAL_BASE64_PSK_HERE"
+        allowedIPs:
+          - family: ipv4
+            address: 10.0.0.2
+            prefixLength: 32
+        endpoint: "peer.example.com:51820"
+        persistentKeepalive: 25
+
+# ============================================================
+#    Interface Up / Down
+# ============================================================
+- type: SetInterfaceUp
+  netns: my-netns
+  iface: br0
+  up: true
+
+# ============================================================
+#    Hardware Matching
+#    Matches a physical interface by PCI bus/device ID
+#    Used to declare which hardware interfaces the
+#    desired state expects, which can result in interfaces
+#    being moved/renamed
+# ============================================================
+- type: MatchHardware
+  netns: "" # root namespace
+  iface: eth0
+  hardwareBus: "pci"
+  hardwareDevice: "0000:00:1f.6"
+
+# ============================================================
+#    DHCP Client
+#    Runs a DHCP client on the given interface to obtain an IP
+#    address lease.
+# ============================================================
+- type: DhcpClient
+  netns: my-netns
+  iface: br0
+  macAddress: "02:00:00:00:00:01"
+  # hostname: "my-hostname"  # optional, sent as DHCP option 12
+# ============================================================
+#    Config Directory
+#    Loads all .json/.yaml/.yml files from a directory.
+# ============================================================
+# - type: ConfigDirectory
+#   path: /etc/compartinet/extra.d
+# ============================================================
+#    Config File
+#    Loads a single .json/.yaml/.yml file.
+# ============================================================
+# - type: ConfigFile
+#   path: /etc/compartinet/config.json

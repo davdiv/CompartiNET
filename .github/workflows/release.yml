@@ -1,0 +1,34 @@
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        required: true
+        description: Version number (x.y.z)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    concurrency:
+      group: "release"
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version: "26.x"
+          cache: "npm"
+      - run: npm ci
+      - run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+          npm version ${{ inputs.version }}
+      - run: git show HEAD
+      - run: npm run ci
+      - run: git push origin main v${{ inputs.version }}
+      - run: npm publish --provenance --access=public
