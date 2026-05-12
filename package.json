@@ -12,6 +12,7 @@
     "netns",
     "systemd"
   ],
+  "private": true,
   "license": "MIT",
   "repository": {
     "type": "git",
