@@ -15,6 +15,7 @@ docker build --tag "$IMAGE" "$SCRIPT_DIR/container"
 
 exec docker run $INTERACTIVE --rm \
 	--network none \
+	--security-opt apparmor=unconfined \
 	--cap-add=NET_ADMIN \
 	--cap-add=SYS_ADMIN \
 	-v "$REPO_DIR:/app" \

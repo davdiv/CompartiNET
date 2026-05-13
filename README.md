@@ -158,8 +158,8 @@ flowchart TD
 ```bash
 npm ci
 
-# Type-check, build, test, lint, format — all at once:
-npm run full-check
+# Full check (type-check, build, both unit and integration tests, lint and format check)
+npm run ci
 
 # Individual commands:
 npm run type-check       # TypeScript type checking
