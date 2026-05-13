@@ -38,9 +38,9 @@ const main = async () => {
 
   const unsub = reconciler.watcher.addListener(() => {});
 
-  await Promise.race([reconciler.watcher.value, promiseAbort]);
+  await Promise.race([reconciler.applyReconciliation(), promiseAbort]);
 
-  if (reconciler.watcher.value.isReady) {
+  if (reconciler.watcher.value) {
     console.log("compartinet-manager: started");
     sdNotifyReady();
   }

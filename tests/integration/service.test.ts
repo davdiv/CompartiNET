@@ -21,7 +21,7 @@ describe("integration / service", () => {
     const reconciler = createReconciler(() => features$.value);
 
     const unsub = reconciler.watcher.addListener(() => {});
-    await reconciler.watcher.value;
+    await reconciler.applyReconciliation();
     unsub();
 
     const state = await collectState();
@@ -42,7 +42,7 @@ describe("integration / service", () => {
     const reconciler = createReconciler(() => features$.value);
 
     const unsub = reconciler.watcher.addListener(() => {});
-    await reconciler.watcher.value;
+    await reconciler.applyReconciliation();
     unsub();
 
     const state = await collectState();
@@ -59,7 +59,7 @@ describe("integration / service", () => {
     const reconciler = createReconciler(() => features$.value);
 
     const unsub = reconciler.watcher.addListener(() => {});
-    await reconciler.watcher.value;
+    await reconciler.applyReconciliation();
     unsub();
 
     // Force a fresh collection and get the enriched state from the reconciler

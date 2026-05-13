@@ -61,9 +61,7 @@ export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Featu
       setTimeout(() => refreshState.notify());
     }
   });
-  const watcherInstance = watcher(async () => {
-    await applyReconciliation();
-  });
+  const watcherInstance = watcher(() => applyReconciliation().isSettled);
   return {
     currentState,
     desiredState,
