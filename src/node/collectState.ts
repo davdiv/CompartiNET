@@ -40,6 +40,15 @@ export const collectNetnsMap = async () => {
   return result;
 };
 
+const execOptional = async (args: string[]) => {
+  try {
+    return await exec(args);
+  } catch (error) {
+    // TODO: improve error reporting:
+    console.error(`Error while running ${args.join(" ")}: ${error}`);
+  }
+};
+
 export const collectRawStateForNetns = async (name: string, ns?: number): Promise<IPRoute2NetnsState> => {
   const prefix = getNetnsPrefix(name);
   const addr: IPRoute2Interface[] = (await execOutJson([...prefix, "ip", "-j", "-d", "addr"])) ?? [];
@@ -51,7 +60,7 @@ export const collectRawStateForNetns = async (name: string, ns?: number): Promis
     wireguard: await collectWireguard(addr, prefix),
     netnsIds: (await execOutJson([...prefix, "ip", "-j", "netns", "list-id"])) ?? [],
     bridgeVlans: (await execOutJson([...prefix, "bridge", "-j", "vlan", "show"])) ?? [],
-    iwDev: (await exec([...prefix, "iw", "dev"])).toString("utf8"),
+    iwDev: (await execOptional([...prefix, "iw", "dev"]))?.toString("utf8"),
     listeningSockets: (await exec([...prefix, "ss", "-tuln", "-H"])).toString("utf8"),
   };
 };

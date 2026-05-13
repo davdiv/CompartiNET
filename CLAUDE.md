@@ -8,7 +8,7 @@ When there is any design decision to make, or any doubt about how to implement s
 
 ## Common Commands
 
-- Full validation: `npm run full-check`
+- Full validation (type-check, build, both unit and integration tests, lint and format checks): `npm run ci`
 - Build Node.js: `npm run build:node`
 - Type check: `npm run type-check`
 - Lint: `npm run lint`
