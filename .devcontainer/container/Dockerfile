@@ -1,6 +1,6 @@
 FROM archlinux:latest
 
-RUN pacman -Syu --noconfirm nodejs npm git docker docker-buildx which sudo
+RUN pacman -Syu --noconfirm nodejs npm git docker docker-buildx which sudo less
 RUN useradd -m node
 
 USER node
