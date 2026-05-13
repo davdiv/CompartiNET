@@ -1,5 +1,5 @@
 import { InterfaceModelVeth, NetnsInode, NetworkModel } from "../networkModel";
-import { getNetnsPrefix } from "../commands";
+import { CommandArg, getNetnsPrefix, getNetnsTarget } from "../commands";
 import { checkIfaceExists, checkIfaceNotExists, checkNetnsExists, requireNetnsName } from "../utils";
 import { removeInterface } from "./utils";
 
@@ -50,9 +50,10 @@ export const applyDeleteVeth = (model: NetworkModel, { netns, iface }: DeleteVet
 };
 
 export const commandForCreateVeth = ({ netns, iface, peerNetns, peerIface }: CreateVethAction) => {
-  const cmd = [...getNetnsPrefix(netns), "ip", "link", "add", iface, "type", "veth", "peer", "name", peerIface];
+  const cmd: CommandArg[] = [...getNetnsPrefix(netns), "ip", "link", "add", iface, "type", "veth", "peer", "name", peerIface];
   if (peerNetns !== netns) {
-    cmd.push("netns", peerNetns);
+    // TODO: add an integration test for this, especially with peerNetns === ""
+    cmd.push("netns", ...getNetnsTarget(peerNetns));
   }
   return cmd;
 };
