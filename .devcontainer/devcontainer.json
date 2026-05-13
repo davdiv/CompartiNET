@@ -3,6 +3,7 @@
     "dockerfile": "container/Dockerfile"
   },
   "containerEnv": {
+    "EDITOR": "code --wait",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "WORKSPACE_PATH_IN_HOST": "${localWorkspaceFolder}"
   },
