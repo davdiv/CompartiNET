@@ -2,7 +2,7 @@
   "name": "compartinet",
   "type": "module",
   "author": "DivDE <divde@musicociel.fr>",
-  "description": "Experimental reactive network manager written in typescript with support for network namespaces. Integrates with systemd.",
+  "description": "Reactive network manager with support for network namespaces. Integrates with systemd.",
   "keywords": [
     "network",
     "wireguard",
