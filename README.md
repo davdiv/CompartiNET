@@ -1,5 +1,7 @@
 # CompartiNET
 
+[![codecov](https://codecov.io/gh/davdiv/compartinet/branch/main/graph/badge.svg)](https://codecov.io/gh/davdiv/compartinet)
+
 Reactive network manager for Linux, written in TypeScript. Manages network namespaces, bridges, veth pairs, WireGuard interfaces, routes, addresses, VLANs, and DHCP — all driven by a declarative YAML or JSON configuration.
 
 **This is very experimental, expect many bugs, it is clearly not yet ready for production use.**
