@@ -1,0 +1,11 @@
+#!/bin/bash
+
+mapfile -d $'\0' ARGS < <(node -e '
+const args = process.argv.slice(1);
+if (args[0] === "run" && args[1] === "-v" && args[2] === "/workspace:/workspace") {
+  args[2] = `${process.env.WORKSPACE_PATH_IN_HOST}:/workspace`
+}
+process.stdout.write(args.join("\0"));
+' --  "$@")
+
+exec /usr/bin/docker "${ARGS[@]}"

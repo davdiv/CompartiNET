@@ -13,12 +13,15 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 REPO_DIR="$(cd -- "$SCRIPT_DIR" && cd .. && pwd)"
 docker build --tag "$IMAGE" "$SCRIPT_DIR/container"
 
-exec docker run $INTERACTIVE --rm \
+# note: when changing parameters here, also update .devcontainer/container/sudo-docker
+exec docker run \
+	-v "$REPO_DIR:/workspace" \
+	--rm \
 	--network none \
 	--security-opt apparmor=unconfined \
 	--cap-add=NET_ADMIN \
 	--cap-add=SYS_ADMIN \
-	-v "$REPO_DIR:/app" \
-	-w /app \
+	-w /workspace \
+	$INTERACTIVE \
 	"$IMAGE" \
 	"$@"

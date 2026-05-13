@@ -1,0 +1,3 @@
+node ALL=(root) NOPASSWD: /usr/local/bin/dfdocker build --tag compartinet-test /workspace/tests/container
+node ALL=(root) NOPASSWD: /usr/local/bin/dfdocker run -v /workspace\:/workspace --rm --network none --security-opt apparmor=unconfined --cap-add=NET_ADMIN --cap-add=SYS_ADMIN -w /workspace compartinet-test *
+node ALL=(root) NOPASSWD: /usr/local/bin/dfdocker run -v /workspace\:/workspace --rm --network none --security-opt apparmor=unconfined --cap-add=NET_ADMIN --cap-add=SYS_ADMIN -w /workspace -ti compartinet-test *

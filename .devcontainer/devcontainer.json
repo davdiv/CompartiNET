@@ -1,0 +1,44 @@
+{
+  "build": {
+    "dockerfile": "container/Dockerfile"
+  },
+  "containerEnv": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "WORKSPACE_PATH_IN_HOST": "${localWorkspaceFolder}"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["anthropic.claude-code", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "redhat.vscode-yaml"],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          }
+        }
+      }
+    }
+  },
+  "remoteUser": "node",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    {
+      "source": "/var/run/docker.sock",
+      "target": "/var/run/docker.sock",
+      "type": "bind"
+    },
+    {
+      "source": "bash-history-${devcontainerId}",
+      "target": "/commandhistory",
+      "type": "volume"
+    },
+    {
+      "source": "claude-code-config-${devcontainerId}",
+      "target": "/home/node/.claude",
+      "type": "volume"
+    }
+  ]
+}
