@@ -20,7 +20,7 @@ export interface DhcpClientServiceSpec extends BaseServiceSpec {
 
 const DEFAULT_REQUESTED_OPTIONS = [DHCP_OPTION.SUBNET_MASK, DHCP_OPTION.ROUTER, DHCP_OPTION.DOMAIN_NAME_SERVER];
 
-export function createDhcpClientMachine(config: DhcpClientServiceSpec, abortSignal: AbortSignal, onLeaseChange: (newLeae: DhcpLease | null) => void) {
+export const createDhcpClientMachine = (config: DhcpClientServiceSpec, abortSignal: AbortSignal, onLeaseChange: (newLeae: DhcpLease | null) => void) => {
   let socket: Socket;
   let lease: DhcpLease | null = null;
   let renewTimer: ReturnType<typeof setTimeout> | null = null;
@@ -50,8 +50,8 @@ export function createDhcpClientMachine(config: DhcpClientServiceSpec, abortSign
   const scheduleTimers = (l: DhcpLease) => {
     clearTimers();
 
-    renewTimer = setTimeout(() => handleRenew(), l.renewalTime * 1000);
-    rebindTimer = setTimeout(() => handleRebind(), l.rebindingTime * 1000);
+    renewTimer = setTimeout(() => void handleRenew(), l.renewalTime * 1000);
+    rebindTimer = setTimeout(() => void handleRebind(), l.rebindingTime * 1000);
     expireTimer = setTimeout(() => {
       emitLeaseChange(null);
     }, l.leaseTime * 1000);
@@ -207,10 +207,11 @@ export function createDhcpClientMachine(config: DhcpClientServiceSpec, abortSign
 
     const offeredLease = extractLease(offer.header);
 
-    return sendRequest("255.255.255.255", 30000, offeredLease);
+    return await sendRequest("255.255.255.255", 30000, offeredLease);
   };
 
-  start();
+  // TODO: what if start throws an error ?
+  void start();
   onAbort(abortSignal, () => {
     clearTimers();
     if (lease) {
@@ -227,7 +228,7 @@ export function createDhcpClientMachine(config: DhcpClientServiceSpec, abortSign
     }
     socket.close();
   });
-}
+};
 
 export const dhcpClientServiceHandler: ServiceHandler<DhcpClientServiceSpec, DhcpLease | null> = reactive((config) =>
   relay<DhcpLease | null>((state) => {

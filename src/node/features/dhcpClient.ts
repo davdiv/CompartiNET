@@ -13,7 +13,7 @@ export interface DhcpClientFeature {
   hostname?: string;
 }
 
-export const dhcpClientHandler: FeatureHandler<DhcpClientFeature, Feature> = reactive(async (feature: DhcpClientFeature, ctx) => {
+export const dhcpClientHandler: FeatureHandler<DhcpClientFeature, Feature> = reactive((feature: DhcpClientFeature, ctx) => {
   const serviceKey = `DhcpClient:${feature.netns}:${feature.iface}`;
   const lease = ctx.getServiceOutput<DhcpLease>(serviceKey);
 

@@ -37,7 +37,7 @@ export const exec = async (args: string[], { stdIn }: { stdIn?: Buffer | string 
   const stderr = collectOutput(child.stderr!);
   const stderrBuffer = await stderr;
   await waitForProcess(child, stderrBuffer);
-  return stdout;
+  return await stdout;
 };
 
 export const execOutJson = async (...args: Parameters<typeof exec>) => {

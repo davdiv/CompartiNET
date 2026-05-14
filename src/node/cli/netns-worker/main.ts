@@ -6,6 +6,7 @@ if (process.connected) {
   const sendResponse = <T>(response: NetnsWorkerResponse<T> & RequestId, handler?: any) => {
     process.send!(response, handler);
   };
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   process.on("message", async ({ requestId, ...params }: NetnsWorkerRequest & RequestId) => {
     try {
       switch (params.type) {

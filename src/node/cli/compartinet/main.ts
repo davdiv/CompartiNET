@@ -21,4 +21,5 @@ const main = async () => {
   await handler(args);
 };
 
-main();
+await main();
+export {};

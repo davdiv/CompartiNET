@@ -13,7 +13,7 @@ export interface MatchHardwareAction {
   phy?: string;
 }
 
-export const newHardware = (hardwareBus?: string, hardwareDevice?: string, phy?: string | undefined): InterfaceModelHardware => ({
+export const newHardware = (hardwareBus?: string, hardwareDevice?: string, phy?: string): InterfaceModelHardware => ({
   type: "hardware",
   up: false,
   addresses: [],

@@ -45,7 +45,7 @@ export const schemaPlugin = (): Plugin => ({
       return { id: resolve(source, "..", id) + ".js", external: false };
     }
   },
-  async load(id) {
+  load(id) {
     const entry = entries.find((e) => e.validatorFile === id);
     if (entry) {
       entry.schema ??= generateSchema(entry.file, entry.typeName);

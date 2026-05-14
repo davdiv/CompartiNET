@@ -2,7 +2,7 @@ import { ReconcileContext } from "./context";
 import { diffRecord } from "./diff";
 
 export function reconcileNamespaces(ctx: ReconcileContext) {
-  const nsDiff = diffRecord(ctx.currentModel.namedNetns as Record<string, unknown>, ctx.desiredModel.namedNetns as Record<string, unknown>);
+  const nsDiff = diffRecord(ctx.currentModel.namedNetns, ctx.desiredModel.namedNetns);
 
   for (const netns of nsDiff.added) {
     if (!netns) continue;

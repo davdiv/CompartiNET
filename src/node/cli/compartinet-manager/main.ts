@@ -42,7 +42,7 @@ const main = async () => {
 
   if (reconciler.watcher.value) {
     console.log("compartinet-manager: started");
-    sdNotifyReady();
+    await sdNotifyReady();
   }
 
   await waitAbortSignal(abortController.signal);
@@ -50,4 +50,4 @@ const main = async () => {
   console.log("compartinet-manager: stopped");
 };
 
-main();
+await main();

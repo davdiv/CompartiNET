@@ -1,4 +1,4 @@
-import { NamespaceModel, NetnsInode, NetworkModel } from "../networkModel";
+import { NamespaceModel, NetworkModel } from "../networkModel";
 import { checkNetnsExists } from "../utils";
 
 export interface CreateNamespaceAction {
@@ -30,7 +30,7 @@ export const newNetns = (): NamespaceModel => ({
 let nextInode = 1;
 
 export const newNetworkModel = (): NetworkModel => ({
-  namedNetns: { "": 0 as NetnsInode },
+  namedNetns: { "": 0 },
   netnsById: { 0: newNetns() },
 });
 
@@ -42,7 +42,7 @@ export const applyCreateNamespace = (model: NetworkModel, { netns }: CreateNames
     // TODO: further check netns name
     throw new Error(`Invalid netns name: ${netns}`);
   }
-  const inode = nextInode++ as NetnsInode;
+  const inode = nextInode++;
   model.namedNetns[netns] = inode;
   model.netnsById[inode] = newNetns();
 };

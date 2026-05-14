@@ -17,7 +17,7 @@ export const createFeaturesFactory = <ExpandableFeature extends { type: string }
         throw new Error(`Unsupported feature type: ${feature.type}`);
       }
       const outputFeatures = await handler(feature, context);
-      return processFeatures(outputFeatures, context);
+      return await processFeatures(outputFeatures, context);
     } else {
       return [feature];
     }
