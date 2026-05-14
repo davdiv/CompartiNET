@@ -12,6 +12,7 @@ export interface ListeningSocket {
   protocol: "udp4" | "udp6" | "tcp4" | "tcp6";
   host: string;
   port: number;
+  zone?: string;
   serviceKey?: string;
 }
 

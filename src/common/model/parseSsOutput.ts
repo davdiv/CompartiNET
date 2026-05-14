@@ -20,8 +20,8 @@ export function parseSsOutput(output: string): ListeningSocket[] {
     const protocol = netidToProtocol(netid, local);
     if (!protocol) continue;
 
-    const { host, port } = parseLocalAddress(local);
-    sockets.push({ protocol, host, port });
+    const { host, zone, port } = parseLocalAddress(local);
+    sockets.push({ protocol, host, port, ...(zone ? { zone } : {}) });
   }
   return sockets;
 }
@@ -38,21 +38,33 @@ function netidToProtocol(netid: string, local: string): ListeningSocket["protoco
   }
 }
 
-function parseLocalAddress(local: string): { host: string; port: number } {
-  let host: string;
-  let portStr: string;
+function parseLocalAddress(local: string): { host: string; port: number; zone?: string } {
+  // Port is always after the last colon
+  const lastColon = local.lastIndexOf(":");
+  const hostWithBrackets = local.slice(0, lastColon);
+  const portStr = local.slice(lastColon + 1);
 
-  if (local.startsWith("[")) {
-    // IPv6: [::]:80 or [::1]:5353
-    const bracketEnd = local.lastIndexOf("]");
-    host = local.slice(1, bracketEnd);
-    portStr = local.slice(bracketEnd + 2); // skip "]:"
+  let host: string;
+  let zone: string | undefined;
+
+  if (hostWithBrackets.startsWith("[")) {
+    // IPv6: [::]:80 or [fe80::1]:546 or [fe80::1%eth0]:546 or [fe80::1]%eth0:546
+    const bracketEnd = hostWithBrackets.indexOf("]");
+    const inner = hostWithBrackets.slice(1, bracketEnd);
+    const afterBracket = hostWithBrackets.slice(bracketEnd + 1);
+    const zoneIdx = inner.indexOf("%");
+    if (zoneIdx !== -1) {
+      host = inner.slice(0, zoneIdx);
+      zone = inner.slice(zoneIdx + 1);
+    } else if (afterBracket.startsWith("%")) {
+      host = inner;
+      zone = afterBracket.slice(1);
+    } else {
+      host = inner;
+    }
   } else {
-    // IPv4: 0.0.0.0:68 or *:5353
-    const lastColon = local.lastIndexOf(":");
-    host = local.slice(0, lastColon);
-    portStr = local.slice(lastColon + 1);
+    host = hostWithBrackets;
   }
 
-  return { host, port: parseInt(portStr, 10) };
+  return { host, zone, port: parseInt(portStr, 10) };
 }

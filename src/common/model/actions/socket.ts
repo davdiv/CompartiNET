@@ -12,9 +12,9 @@ export interface OpenSocketAction {
 
 export const applyOpenSocket = (model: NetworkModel, { netns, socket }: OpenSocketAction) => {
   const ns = checkNetnsExists(model, netns);
-  const duplicate = ns.listeningSockets.find((s) => s.protocol === socket.protocol && s.host === socket.host && s.port === socket.port);
+  const duplicate = ns.listeningSockets.find((s) => s.protocol === socket.protocol && s.host === socket.host && s.zone === socket.zone && s.port === socket.port);
   if (duplicate) {
-    throw new Error(`Duplicate listening socket ${socket.protocol}/${socket.host}:${socket.port} in namespace ${netns}`);
+    throw new Error(`Duplicate listening socket ${socket.protocol}/${socket.host}${socket.zone ? "%" + socket.zone : ""}:${socket.port} in namespace ${netns}`);
   }
   ns.listeningSockets.push(socket);
 };

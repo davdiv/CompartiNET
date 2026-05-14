@@ -2,7 +2,7 @@ import { ListeningSocket } from "../model/networkModel";
 import { ReconcileContext } from "./context";
 
 function socketKey(s: ListeningSocket): string {
-  return `${s.protocol}:${s.host}:${s.port}`;
+  return `${s.protocol}:${s.host}${s.zone ? "%" + s.zone : ""}:${s.port}`;
 }
 
 export function reconcileSockets(ctx: ReconcileContext): void {

@@ -52,7 +52,7 @@ export const createServiceManagerFactory = <ServiceSpec extends BaseServiceSpec>
         if (!ns) continue;
         const svcMap = socketMeta[inode];
         for (const sock of ns.listeningSockets) {
-          const key = `${sock.protocol}:${sock.host}:${sock.port}`;
+          const key = `${sock.protocol}:${sock.host}${sock.zone ? "%" + sock.zone : ""}:${sock.port}`;
           if (Object.hasOwn(svcMap, key)) {
             sock.serviceKey = svcMap[key];
           }
