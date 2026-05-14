@@ -25,7 +25,7 @@ export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Featu
       equals: isDeepStrictEqual,
     },
   );
-  const processedFeatures = reactive(async () => processFeatures(await features(), serviceManager.context));
+  const processedFeatures = reactive(async () => await processFeatures(await features(), serviceManager.context));
   const desiredState = reactive(async () => (await processedFeatures()).desiredState, { equals: isDeepStrictEqual });
   const desiredServices = reactive(async () => (await processedFeatures()).desiredServices, { equals: isDeepStrictEqual });
   const serviceManager = createServicesManager(desiredServices);

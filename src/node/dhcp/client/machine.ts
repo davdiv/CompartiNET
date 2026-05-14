@@ -235,8 +235,6 @@ export const dhcpClientServiceHandler: ServiceHandler<DhcpClientServiceSpec, Dhc
     createDhcpClientMachine(config, abortController.signal, (lease) => {
       state.value = lease;
     });
-    return () => {
-      abortController.abort();
-    };
+    return () => abortController.abort();
   }),
 );
