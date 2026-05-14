@@ -453,7 +453,7 @@ describe("reconcile", () => {
     );
   });
 
-  it("should create wireguard in birthNetns and move to target netns", () => {
+  it("should create wireguard in birthNetns and move to target netns", async () => {
     const actual: NetworkModel = createTestModel({
       "": newNetns(),
       ns1: newNetns(),
@@ -486,7 +486,7 @@ describe("reconcile", () => {
       "ip netns exec ns1 ip link add wg0 type wireguard
       ip netns exec ns1 ip link set wg0 name wg0 netns ns2"
     `);
-    checkReproducibleFromScratch(desired);
+    await checkReproducibleFromScratch(desired);
   });
 
   it("should create wireguard directly in target netns when birthNetns matches", () => {

@@ -27,7 +27,7 @@
 - type: CreateVeth
   netns: my-netns
   iface: veth0
-  peerNetns: my-netns # peer namespace (may differ from netns)
+  peerNetns: "" # "" is the default namespace from which compartinet is started)
   peerIface: veth1
 
 # ============================================================
@@ -60,7 +60,7 @@
 # ============================================================
 - type: AddAltname
   netns: ""
-  iface: eth-guest
+  iface: veth1
   altname: guest-nic
 
 # ============================================================

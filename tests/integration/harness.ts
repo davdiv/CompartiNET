@@ -54,6 +54,6 @@ export const runActionAndVerify = async (action: NetworkAction) => {
   applyAction(expected, action);
 
   expect(normalizeModel(afterActual)).toEqual(normalizeModel(expected));
-  checkReproducibleFromScratch(beforeActual);
-  checkReproducibleFromScratch(afterActual);
+  await checkReproducibleFromScratch(beforeActual);
+  await checkReproducibleFromScratch(afterActual);
 };

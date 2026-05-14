@@ -24,9 +24,9 @@ CompartiNET uses a **desired-state vs current-state reconciliation** pattern:
 
 1. **Desired state** is built from your declarative configuration (YAML/JSON). Feature handlers (netns, bridge, veth, WireGuard, DHCP, etc.) expand the config into a `NetworkModel` — a structured representation of namespaces, interfaces, addresses, and routes.
 
-2. **Current state** is collected from the kernel by polling `iproute2` JSON output, `wg showconf`, `bridge vlan show`, `iw dev`, and `ss`.
+2. **Current state** is collected from the kernel by polling `iproute2` JSON output, `wg showconf`, `bridge vlan show`, `iw dev`...
 
-3. **Reconciliation** diffs the two models and produces a sequence of `ip`, `bridge`, `wg`, and `sysctl` commands to converge the current state toward the desired state.
+3. **Reconciliation** diffs the two models and produces a sequence of `ip`, `bridge` and `wg` commands to converge the current state toward the desired state.
 
 4. **Commands** are executed, and the cycle repeats every 30 seconds to catch drift.
 
@@ -52,58 +52,28 @@ sudo systemctl enable --now compartinet
 ## Configuration Example
 
 ```yaml
-# /etc/compartinet/config.d/network.yaml
-
-- type: CreateNamespace
-  netns: apps
-
-- type: CreateBridge
-  netns: apps
-  iface: br0
-  vlanFiltering: true
-
-- type: CreateVeth
-  netns: apps
-  iface: veth0
-  peerNetns: ""
-  peerIface: veth-apps
-
-- type: AddBridgePort
-  netns: apps
-  iface: veth0
-  bridge: br0
-
-- type: AddIpAddress
-  netns: apps
-  iface: br0
-  ip:
-    family: ipv4
-    address: 10.0.0.1
-    prefixLength: 24
-
+# /etc/compartinet/config.d/network.yaml :
+# yaml-language-server: $schema=./dist/config-schema.json
 - type: SetInterfaceUp
-  netns: apps
-  iface: br0
+  netns: ""
+  iface: lo
   up: true
 
-- type: CreateWireguard
-  netns: apps
-  iface: wg0
+- type: MatchHardware
+  netns: ""
+  iface: eth0
+  hardwareBus: pci
+  hardwareDevice: 0000:00:1f.6
 
-- type: SetWireguardConfig
-  netns: apps
-  iface: wg0
-  config:
-    privateKey: "..."
-    listenPort: 51820
-    peers:
-      - publicKey: "..."
-        allowedIPs:
-          - family: ipv4
-            address: 10.0.0.2
-            prefixLength: 32
-        endpoint: "peer.example.com:51820"
-        persistentKeepalive: 25
+- type: SetInterfaceUp
+  netns: ""
+  iface: eth0
+  up: true
+
+- type: DhcpClient
+  netns: ""
+  iface: eth0
+  macAddress: 01:02:03:04:05:06
 ```
 
 See [sampleConfig.yaml](sampleConfig.yaml) for a complete annotated reference of all available features.

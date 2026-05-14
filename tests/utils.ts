@@ -1,9 +1,10 @@
 import { expect } from "vitest";
 import { createDesiredModelFromBasicFeatures } from "../src/common/features";
 import { NetworkModel } from "../src/common/model/networkModel";
-import { validate } from "../src/common/model/validator";
+import { validate as isModelValid } from "../src/common/model/validator";
 import { modelToConfig } from "../src/common/reconcile/modelToConfig";
-import { validate as validateConfig } from "../src/node/features/validator";
+import { validate as isConfigValid } from "../src/node/features/validator";
+import { processFeatures } from "../src/node/features";
 
 /**
  * Normalizes a network model for comparison by stripping fields that the current
@@ -67,17 +68,38 @@ export const normalizeModel = (model: NetworkModel): NetworkModel => {
   return result;
 };
 
-export const checkReproducibleFromScratch = (model: NetworkModel) => {
+export const checkReproducibleFromScratch = async (model: NetworkModel) => {
   const config = modelToConfig(model);
-  if (!validateConfig(config)) {
-    expect.fail(`Invalid config: ${JSON.stringify(config, null, 2)}\nValidation errors: ${JSON.stringify(validateConfig.errors, null, 2)}`);
-  }
+  await validateConfig(config);
   const newModel = createDesiredModelFromBasicFeatures(config);
   expect(normalizeModel(model)).toEqual(normalizeModel(newModel));
 };
 
-export const validateModel = (model: NetworkModel) => {
-  if (!validate(model)) {
-    expect.fail(`Invalid model: ${JSON.stringify(model, null, 2)}\nValidation errors: ${JSON.stringify(validate.errors, null, 2)}`);
+const stringifyValidationErrors = (errors: any) => {
+  if (!errors || !Array.isArray(errors)) return "";
+  return errors
+    .map((err: any) => {
+      const path = err.instancePath || "/";
+      const message = err.message || "unknown error";
+      return `  ${path}: ${message}`;
+    })
+    .join("\n");
+};
+
+export const validateConfig = async (config: any) => {
+  if (!isConfigValid(config)) {
+    expect.fail(`Invalid config: ${JSON.stringify(config, null, 2)}\nValidation errors: ${stringifyValidationErrors(isConfigValid.errors)}`);
+  }
+  const { desiredState } = await processFeatures(config, {
+    getServiceOutput() {
+      return null;
+    },
+  });
+  validateModel(desiredState);
+};
+
+export const validateModel = (model: any) => {
+  if (!isModelValid(model)) {
+    expect.fail(`Invalid model: ${JSON.stringify(model, null, 2)}\nValidation errors: ${stringifyValidationErrors(isModelValid.errors)}`);
   }
 };
