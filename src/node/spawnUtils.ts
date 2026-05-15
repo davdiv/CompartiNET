@@ -3,7 +3,7 @@ import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Readable } from "node:stream";
-import type { CommandArg, Commands } from "../common/model/commands";
+import type { CommandArg } from "../common/model/commands";
 
 export const waitForProcess = (child: ChildProcess, stderrBuffer: Buffer) =>
   new Promise<void>((resolve, reject) => {
@@ -82,11 +82,5 @@ export const runCommand = async (args: CommandArg[]): Promise<Buffer> => {
         // ignore cleanup errors
       }
     }
-  }
-};
-
-export const runCommands = async (commands: Commands) => {
-  for (const cmd of commands) {
-    await runCommand(cmd);
   }
 };

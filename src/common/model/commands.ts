@@ -9,7 +9,6 @@ export interface ProcessPidArg {
 
 export type CommandArg = string | TempFileArg | ProcessPidArg;
 export type Command = CommandArg[];
-export type Commands = Command[];
 
 export const getNetnsPrefix = (netns: string): string[] => (netns ? ["ip", "netns", "exec", netns] : []);
 export const getNetnsTarget = (netns: string): CommandArg[] => [netns || { type: "processPid" }];

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { commandForActions } from "../../src/common/model/actions";
+import { commandForAction } from "../../src/common/model/actions";
 import { RealInterfaceModel } from "../../src/common/model/networkModel";
 import { reconcile } from "../../src/common/reconcile";
 import { collectState } from "../../src/node/collectState";
-import { exec } from "../../src/node/spawnUtils";
+import { exec, runCommand } from "../../src/node/spawnUtils";
 import { normalizeModel } from "../utils";
-import { cleanupState, runCommands } from "./harness";
+import { cleanupState } from "./harness";
 
 describe("integration / full reconcile", () => {
   afterEach(cleanupState);
@@ -34,8 +34,10 @@ describe("integration / full reconcile", () => {
     expect(normalizeModel(expectedModel)).toEqual(normalizeModel(desired));
 
     // 5. Execute all generated commands
-    const commands = commandForActions(actions);
-    await runCommands(commands);
+    for (const action of actions) {
+      const command = commandForAction(action);
+      await runCommand(command);
+    }
 
     // 6. Collect state after execution
     const after = await collectState();

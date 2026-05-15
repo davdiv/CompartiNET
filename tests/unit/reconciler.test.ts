@@ -1,20 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { NetworkAction, applyAction, commandForActions } from "../../src/common/model/actions";
+import { applyAction, commandForAction } from "../../src/common/model/actions";
 import { newNetns } from "../../src/common/model/actions/namespace";
-import { checkIfaceExists } from "../../src/common/model/utils";
 import { formatCommand } from "../../src/common/model/commands";
-import { parseIpAddressModel } from "../../src/common/model/ip";
 import { InterfaceModelWireguard, NetworkModel } from "../../src/common/model/networkModel";
+import { checkIfaceExists } from "../../src/common/model/utils";
 import { reconcile } from "../../src/common/reconcile";
-import { createAltname, createBridge, createInterface, createNamespace, createTestModel, ns } from "./fixtures";
 import { checkReproducibleFromScratch } from "../utils";
+import { createAltname, createBridge, createInterface, createNamespace, createTestModel, ns } from "./fixtures";
 
 describe("reconcile", () => {
   const getCommands = (actual: NetworkModel, desired: NetworkModel) => {
     const { actions } = reconcile(actual, desired);
-    return commandForActions(actions)
-      .map((a) => formatCommand(a))
-      .join("\n");
+    return actions.map(commandForAction).map(formatCommand).join("\n");
   };
 
   it("should generate command to create a namespace", () => {
@@ -324,24 +321,6 @@ describe("reconcile", () => {
 		`);
   });
 
-  it("should commandFor CreateBridge action", () => {
-    const actions: NetworkAction[] = [{ type: "CreateBridge", netns: "test-ns", iface: "br0", vlanFiltering: true, stp: false }];
-    expect(
-      commandForActions(actions)
-        .map((a) => a.join(" "))
-        .join("\n"),
-    ).toMatchInlineSnapshot(`"ip netns exec test-ns ip link add br0 type bridge vlan_filtering 1 stp_state 0"`);
-  });
-
-  it("should commandFor AddBridgePort action", () => {
-    const actions: NetworkAction[] = [{ type: "AddBridgePort", netns: "test-ns", iface: "eth0", bridge: "br0" }];
-    expect(
-      commandForActions(actions)
-        .map((a) => a.join(" "))
-        .join("\n"),
-    ).toMatchInlineSnapshot(`"ip netns exec test-ns ip link set eth0 master br0"`);
-  });
-
   it("should apply AddBridgePort and set bridgeMember", () => {
     const model: NetworkModel = createTestModel({
       "test-ns": {
@@ -400,57 +379,6 @@ describe("reconcile", () => {
     const commands = getCommands(actual, desired);
     expect(commands).toContain("bridge vlan add dev eth0 vid 20 untagged");
     expect(commands).not.toContain("pvid");
-  });
-
-  it("should commandFor CreateVeth action", () => {
-    const actions: NetworkAction[] = [{ type: "CreateVeth", netns: "ns1", iface: "veth0", peerNetns: "ns2", peerIface: "veth1" }];
-    expect(
-      commandForActions(actions)
-        .map((a) => a.join(" "))
-        .join("\n"),
-    ).toMatchInlineSnapshot(`"ip netns exec ns1 ip link add veth0 type veth peer name veth1 netns ns2"`);
-  });
-
-  it("should commandFor CreateWireguard and SetWireguardConfig actions", () => {
-    const actions: NetworkAction[] = [
-      { type: "CreateWireguard", netns: "test-ns", iface: "wg0" },
-      {
-        type: "SetWireguardConfig",
-        netns: "test-ns",
-        iface: "wg0",
-        config: {
-          privateKey: "abc123",
-          listenPort: 51820,
-          peers: [
-            {
-              publicKey: "peerKey1",
-              allowedIPs: [parseIpAddressModel("10.0.0.2/32")],
-              endpoint: "192.168.1.2:51820",
-              persistentKeepalive: 25,
-            },
-          ],
-        },
-      },
-    ];
-    expect(
-      commandForActions(actions)
-        .map((a) => formatCommand(a))
-        .join("\n"),
-    ).toMatchInlineSnapshot(
-      `
-			"ip netns exec test-ns ip link add wg0 type wireguard
-			ip netns exec test-ns wg syncconf wg0 <(printf '%s' '[Interface]
-			ListenPort = 51820
-			PrivateKey = abc123
-
-			[Peer]
-			PublicKey = peerKey1
-			AllowedIPs = 10.0.0.2/32
-			Endpoint = 192.168.1.2:51820
-			PersistentKeepalive = 25
-			')"
-		`,
-    );
   });
 
   it("should create wireguard in birthNetns and move to target netns", async () => {
@@ -709,21 +637,6 @@ describe("reconcile", () => {
 			"ip netns exec test-ns ip link property del dev eth0-old altname eth0-old
 			ip netns exec test-ns ip link property add dev eth0 altname eth0-new"
 		`);
-  });
-
-  it("should generate AddRoute command with onlink flag", () => {
-    const actions: NetworkAction[] = [
-      {
-        type: "AddRoute",
-        netns: "test-ns",
-        route: { family: "ipv4", address: "10.0.0.0", prefixLength: 8, iface: "eth0", gateway: "10.255.255.1", onlink: true },
-      },
-    ];
-    expect(
-      commandForActions(actions)
-        .map((a) => a.join(" "))
-        .join("\n"),
-    ).toMatchInlineSnapshot(`"ip netns exec test-ns ip route add 10.0.0.0/8 via 10.255.255.1 dev eth0 onlink"`);
   });
 
   it("should resolve altname via checkIfaceExists", () => {

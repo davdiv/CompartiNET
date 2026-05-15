@@ -1,13 +1,11 @@
 import { expect } from "vitest";
-import { applyAction, commandForActions, type NetworkAction } from "../../src/common/model/actions";
+import { applyAction, commandForAction, type NetworkAction } from "../../src/common/model/actions";
 import { applyRuntimeMeta, recordActionMeta, type InterfaceRuntimeMetaMap } from "../../src/common/model/interfaceMeta";
 import { collectState } from "../../src/node/collectState";
 import { Config } from "../../src/node/features";
 import { createReconciler } from "../../src/node/reconciler";
-import { runCommands } from "../../src/node/spawnUtils";
+import { runCommand } from "../../src/node/spawnUtils";
 import { checkReproducibleFromScratch, normalizeModel } from "../utils";
-
-export { runCommands };
 
 const runtimeMeta: InterfaceRuntimeMetaMap = {};
 
@@ -17,8 +15,8 @@ export const runActionAndVerify = async (action: NetworkAction) => {
   applyRuntimeMeta(beforeActual, runtimeMeta);
 
   // Execute the action under test
-  const commands = commandForActions([action]);
-  await runCommands(commands);
+  const command = commandForAction(action);
+  await runCommand(command);
 
   // Record metadata before collecting after-state so it's available for enrichment
   recordActionMeta(runtimeMeta, action, beforeActual.namedNetns);

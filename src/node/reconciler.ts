@@ -1,13 +1,13 @@
 import { isDeepStrictEqual } from "node:util";
 import { getContext, notifier, reactive, ReactiveFn, watcher } from "signalium";
 import { MarkReloadable } from "../common/features/createFeatures";
-import { commandForActions } from "../common/model/actions";
+import { commandForAction } from "../common/model/actions";
 import { formatCommand } from "../common/model/commands";
 import { applyRuntimeMeta, recordActionMeta, type InterfaceRuntimeMetaMap } from "../common/model/interfaceMeta";
 import { reconcile } from "../common/reconcile";
 import { collectState, getNs } from "./collectState";
 import { createServicesManager, processFeatures, type Feature } from "./features";
-import { runCommands } from "./spawnUtils";
+import { runCommand } from "./spawnUtils";
 
 export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Feature[], []>) => {
   const refreshState = notifier();
@@ -47,9 +47,9 @@ export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Featu
     if (actions.length > 0) {
       const namedNetns = { ...currentNamedNetns };
       for (const action of actions) {
-        const commands = commandForActions([action]);
-        console.log(`Commands:\n - ${commands.map(formatCommand).join("\n - ")}`);
-        await runCommands(commands);
+        const command = commandForAction(action);
+        console.log(formatCommand(command));
+        await runCommand(command);
         if (action.type === "CreateNamespace") {
           namedNetns[action.netns] = await getNs(action.netns);
         }

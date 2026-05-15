@@ -1,4 +1,3 @@
-import { Commands } from "../commands";
 import { NetworkModel } from "../networkModel";
 import { AddIpAddressAction, RemoveIpAddressAction, applyAddIpAddress, applyRemoveIpAddress, commandForAddIpAddress, commandForRemoveIpAddress } from "./address";
 import { AddAltnameAction, RemoveAltnameAction, applyAddAltname, applyRemoveAltname, commandForAddAltname, commandForRemoveAltname } from "./altname";
@@ -28,8 +27,8 @@ import {
 import { MatchHardwareAction, applyMatchHardware, commandForMatchHardware } from "./hardware";
 import { MoveInterfaceAction, SetInterfaceUpAction, applyMoveInterface, applySetInterfaceUp, commandForMoveInterface, commandForSetInterfaceUp } from "./interface";
 import { CreateNamespaceAction, DeleteNamespaceAction, applyCreateNamespace, applyDeleteNamespace, commandForCreateNamespace, commandForDeleteNamespace } from "./namespace";
-import { OpenSocketAction, applyOpenSocket, commandForOpenSocket } from "./socket";
 import { AddRouteAction, RemoveRouteAction, applyAddRoute, applyRemoveRoute, commandForAddRoute, commandForRemoveRoute } from "./route";
+import { OpenSocketAction, applyOpenSocket, commandForOpenSocket } from "./socket";
 import { ActionHandler, ActionHandlerMap, CommandForHandler, CommandForHandlerMap } from "./types";
 import { CreateVethAction, DeleteVethAction, applyCreateVeth, applyDeleteVeth, commandForCreateVeth, commandForDeleteVeth } from "./veth";
 import {
@@ -155,14 +154,7 @@ export function applyAction(model: NetworkModel, action: NetworkAction): Network
   return model;
 }
 
-/**
- * commandFors a list of NetworkActions into executable CLI command arrays.
- */
-export function commandForActions(actions: NetworkAction[]): Commands {
-  const commands: Commands = [];
-  for (const action of actions) {
-    const handler = commandForHandlers[action.type] as CommandForHandler<typeof action>;
-    commands.push(handler(action));
-  }
-  return commands;
-}
+export const commandForAction = (action: NetworkAction) => {
+  const handler = commandForHandlers[action.type] as CommandForHandler<typeof action>;
+  return handler(action);
+};
