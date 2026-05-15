@@ -1,5 +1,5 @@
+import { getIpNetnsPrefix } from "../commands";
 import { NetworkModel } from "../networkModel";
-import { getNetnsPrefix } from "../commands";
 import { checkIfaceExists, checkIfaceNotExists, inconsistentModelFailure } from "../utils";
 
 export interface AddAltnameAction {
@@ -35,6 +35,6 @@ export const applyRemoveAltname = (model: NetworkModel, { netns, altname }: Remo
   delete ns.interfaces[altname];
 };
 
-export const commandForAddAltname = ({ netns, iface, altname }: AddAltnameAction) => [...getNetnsPrefix(netns), "ip", "link", "property", "add", "dev", iface, "altname", altname];
+export const commandForAddAltname = ({ netns, iface, altname }: AddAltnameAction) => [...getIpNetnsPrefix(netns), "link", "property", "add", "dev", iface, "altname", altname];
 
-export const commandForRemoveAltname = ({ netns, altname }: RemoveAltnameAction) => [...getNetnsPrefix(netns), "ip", "link", "property", "del", "dev", altname, "altname", altname];
+export const commandForRemoveAltname = ({ netns, altname }: RemoveAltnameAction) => [...getIpNetnsPrefix(netns), "link", "property", "del", "dev", altname, "altname", altname];

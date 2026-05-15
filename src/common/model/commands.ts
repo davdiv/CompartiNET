@@ -11,6 +11,8 @@ export type CommandArg = string | TempFileArg | ProcessPidArg;
 export type Command = CommandArg[];
 
 export const getNetnsPrefix = (netns: string): string[] => (netns ? ["ip", "netns", "exec", netns] : []);
+export const getIpNetnsPrefix = (netns: string) => (netns ? ["ip", "-n", netns] : ["ip"]);
+export const getBridgeNetnsPrefix = (netns: string) => (netns ? ["bridge", "-n", netns] : ["bridge"]);
 export const getNetnsTarget = (netns: string): CommandArg[] => [netns || { type: "processPid" }];
 
 /**

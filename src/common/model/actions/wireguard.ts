@@ -1,7 +1,7 @@
+import { Command, getIpNetnsPrefix, getNetnsPrefix } from "../commands";
 import { InterfaceModelWireguard, NetnsInode, NetworkModel, WireguardConfig } from "../networkModel";
 import { checkIfaceExists, checkIfaceNotExists, checkNetnsExists } from "../utils";
 import { formatWgConfig } from "../wg/formatter";
-import { getNetnsPrefix, Command } from "../commands";
 import { removeInterface } from "./utils";
 
 export interface CreateWireguardAction {
@@ -58,9 +58,9 @@ export const applySetWireguardConfig = (model: NetworkModel, { netns, iface, con
   ifaceModel.config = config;
 };
 
-export const commandForCreateWireguard = ({ netns, iface }: CreateWireguardAction) => [...getNetnsPrefix(netns), "ip", "link", "add", iface, "type", "wireguard"];
+export const commandForCreateWireguard = ({ netns, iface }: CreateWireguardAction) => [...getIpNetnsPrefix(netns), "link", "add", iface, "type", "wireguard"];
 
-export const commandForDeleteWireguard = ({ netns, iface }: DeleteWireguardAction) => [...getNetnsPrefix(netns), "ip", "link", "del", iface];
+export const commandForDeleteWireguard = ({ netns, iface }: DeleteWireguardAction) => [...getIpNetnsPrefix(netns), "link", "del", iface];
 
 export const commandForSetWireguardConfig = ({ netns, iface, config }: SetWireguardConfigAction): Command => [
   ...getNetnsPrefix(netns),

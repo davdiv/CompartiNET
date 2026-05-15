@@ -1,4 +1,4 @@
-import { getNetnsPrefix } from "../commands";
+import { getIpNetnsPrefix } from "../commands";
 import { formatIpAddressModel } from "../ip";
 import { NetworkModel, RouteModel } from "../networkModel";
 import { checkIfaceExists, checkNetnsExists } from "../utils";
@@ -40,6 +40,6 @@ export const applyRemoveRoute = (model: NetworkModel, { netns, route }: RemoveRo
 
 const getRouteParam = (route: RouteModel) => [formatIpAddressModel(route), ...(route.gateway ? ["via", route.gateway] : []), "dev", route.iface, ...(route.onlink ? ["onlink"] : [])];
 
-export const commandForAddRoute = ({ netns, route }: AddRouteAction) => [...getNetnsPrefix(netns), "ip", "route", "add", ...getRouteParam(route)];
+export const commandForAddRoute = ({ netns, route }: AddRouteAction) => [...getIpNetnsPrefix(netns), "route", "add", ...getRouteParam(route)];
 
-export const commandForRemoveRoute = ({ netns, route }: RemoveRouteAction) => [...getNetnsPrefix(netns), "ip", "route", "del", ...getRouteParam(route)];
+export const commandForRemoveRoute = ({ netns, route }: RemoveRouteAction) => [...getIpNetnsPrefix(netns), "route", "del", ...getRouteParam(route)];

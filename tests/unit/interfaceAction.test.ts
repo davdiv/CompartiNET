@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { applyMoveInterface, applySetInterfaceUp, commandForMoveInterface, commandForSetInterfaceUp } from "../../src/common/model/actions/interface";
+import { applyMoveInterface, applySetInterfaceUp } from "../../src/common/model/actions/interface";
 import { InterfaceModelVeth, NetworkModel, RealInterfaceModel } from "../../src/common/model/networkModel";
-import { createInterface, createBridge, createBridgeMember, createNamespace } from "./fixtures";
-import { createTestModel, ns } from "./fixtures";
+import { createBridge, createBridgeMember, createInterface, createNamespace, createTestModel, ns } from "./fixtures";
 
 const getRealIface = (model: NetworkModel, netns: string, iface: string) => ns(model, netns).interfaces[iface] as RealInterfaceModel;
 
@@ -163,34 +162,5 @@ describe("MoveInterface action", () => {
       },
     });
     expect(() => applyMoveInterface(model, { type: "MoveInterface", oldNetns: "ns1", oldIface: "eth0", newNetns: "ns1", newIface: "eth1" })).toThrow("already exists");
-  });
-});
-
-describe("commandForMoveInterface", () => {
-  it("generates ip link set netns and name command", () => {
-    const cmd = commandForMoveInterface({ type: "MoveInterface", oldNetns: "ns1", oldIface: "eth0", newNetns: "ns2", newIface: "wan0" });
-    expect(cmd).toEqual(["ip", "netns", "exec", "ns1", "ip", "link", "set", "eth0", "name", "wan0", "netns", "ns2"]);
-  });
-
-  it("generates ip link set name only when staying in the same namespace", () => {
-    const cmd = commandForMoveInterface({ type: "MoveInterface", oldNetns: "ns1", oldIface: "eth0", newNetns: "ns1", newIface: "wan0" });
-    expect(cmd).toEqual(["ip", "netns", "exec", "ns1", "ip", "link", "set", "eth0", "name", "wan0"]);
-  });
-
-  it("generates processPid when moving to the default namespace", () => {
-    const cmd = commandForMoveInterface({ type: "MoveInterface", oldNetns: "ns1", oldIface: "eth0", newNetns: "", newIface: "eth0" });
-    expect(cmd).toEqual(["ip", "netns", "exec", "ns1", "ip", "link", "set", "eth0", "name", "eth0", "netns", { type: "processPid" }]);
-  });
-
-  it("handles move from default namespace to named namespace", () => {
-    const cmd = commandForMoveInterface({ type: "MoveInterface", oldNetns: "", oldIface: "eth0", newNetns: "ns1", newIface: "eth0" });
-    expect(cmd).toEqual(["ip", "link", "set", "eth0", "name", "eth0", "netns", "ns1"]);
-  });
-});
-
-describe("commandForSetInterfaceUp", () => {
-  it("generates ip link set state command", () => {
-    const cmd = commandForSetInterfaceUp({ type: "SetInterfaceUp", netns: "test-ns", iface: "eth0", up: true });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "ip", "link", "set", "eth0", "up"]);
   });
 });

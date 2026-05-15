@@ -1,7 +1,7 @@
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { generateActualNetworkModel } from "../common/model/actualModelGenerator";
-import { getNetnsPrefix } from "../common/model/commands";
+import { getBridgeNetnsPrefix, getIpNetnsPrefix, getNetnsPrefix } from "../common/model/commands";
 import { IPRoute2Interface, IPRoute2NetnsState } from "../common/model/iproute2";
 import { exec, execOutJson } from "./spawnUtils";
 
@@ -50,16 +50,17 @@ const execOptional = async (args: string[]) => {
 };
 
 export const collectRawStateForNetns = async (name: string, ns?: number): Promise<IPRoute2NetnsState> => {
+  const ipPrefix = getIpNetnsPrefix(name);
   const prefix = getNetnsPrefix(name);
-  const addr: IPRoute2Interface[] = (await execOutJson([...prefix, "ip", "-j", "-d", "addr"])) ?? [];
+  const addr: IPRoute2Interface[] = (await execOutJson([...ipPrefix, "-j", "-d", "addr"])) ?? [];
   return {
     ns: ns ?? (await getNs(name)),
     name: [name],
     addr,
-    route: (await execOutJson([...prefix, "ip", "-j", "route", "list", "table", "all"])) ?? [],
+    route: (await execOutJson([...ipPrefix, "-j", "route", "list", "table", "all"])) ?? [],
     wireguard: await collectWireguard(addr, prefix),
-    netnsIds: (await execOutJson([...prefix, "ip", "-j", "netns", "list-id"])) ?? [],
-    bridgeVlans: (await execOutJson([...prefix, "bridge", "-j", "vlan", "show"])) ?? [],
+    netnsIds: (await execOutJson([...ipPrefix, "-j", "netns", "list-id"])) ?? [],
+    bridgeVlans: (await execOutJson([...getBridgeNetnsPrefix(name), "-j", "vlan", "show"])) ?? [],
     iwDev: (await execOptional([...prefix, "iw", "dev"]))?.toString("utf8"),
     listeningSockets: (await exec([...prefix, "ss", "-tuln", "-H"])).toString("utf8"),
   };

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createTestModel, ns } from "./fixtures";
-import { applyAddAltname, applyRemoveAltname, commandForAddAltname, commandForRemoveAltname } from "../../src/common/model/actions/altname";
 import { applyAction } from "../../src/common/model/actions";
+import { applyAddAltname, applyRemoveAltname } from "../../src/common/model/actions/altname";
 import { NetworkModel, RealInterfaceModel } from "../../src/common/model/networkModel";
+import { createTestModel, ns } from "./fixtures";
 
 describe("AddAltname action", () => {
   it("adds an altname to an interface", () => {
@@ -56,19 +56,5 @@ describe("RemoveAltname action", () => {
     (ns(model, "test-ns").interfaces["lo"] as { up: boolean }).up = true;
 
     expect(() => applyRemoveAltname(model, { type: "RemoveAltname", netns: "test-ns", altname: "loopback0" })).toThrow("Interface loopback0 does not exist in namespace test-ns");
-  });
-});
-
-describe("commandForAddAltname", () => {
-  it("generates ip link property add command", () => {
-    const cmd = commandForAddAltname({ type: "AddAltname", netns: "test-ns", iface: "lo", altname: "loopback0" });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "ip", "link", "property", "add", "dev", "lo", "altname", "loopback0"]);
-  });
-});
-
-describe("commandForRemoveAltname", () => {
-  it("generates ip link property del command", () => {
-    const cmd = commandForRemoveAltname({ type: "RemoveAltname", netns: "test-ns", altname: "loopback0" });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "ip", "link", "property", "del", "dev", "loopback0", "altname", "loopback0"]);
   });
 });

@@ -67,7 +67,7 @@ describe("reconcile", () => {
     });
 
     const commands = getCommands(actual, desired);
-    expect(commands).toMatchInlineSnapshot(`"ip netns exec test-ns ip addr add 192.168.1.10/24 dev eth0"`);
+    expect(commands).toMatchInlineSnapshot(`"ip -n test-ns addr add 192.168.1.10/24 dev eth0"`);
   });
 
   it("should generate command to remove an unwanted IP address", () => {
@@ -83,7 +83,7 @@ describe("reconcile", () => {
     });
 
     const commands = getCommands(actual, desired);
-    expect(commands).toMatchInlineSnapshot(`"ip netns exec test-ns ip addr del 192.168.1.10/24 dev eth0"`);
+    expect(commands).toMatchInlineSnapshot(`"ip -n test-ns addr del 192.168.1.10/24 dev eth0"`);
   });
 
   it("should atomically migrate interface namespace and name", () => {
@@ -122,12 +122,12 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-			"ip netns add ns2
-			ip netns exec ns1 ip link set eth0 down
-			ip netns exec ns1 ip link set eth0 name wan0 netns ns2
-			ip netns exec ns2 ip link set wan0 up
-			ip netns del ns1"
-		`);
+      "ip netns add ns2
+      ip -n ns1 link set eth0 down
+      ip -n ns1 link set eth0 name wan0 netns ns2
+      ip -n ns2 link set wan0 up
+      ip netns del ns1"
+    `);
   });
 
   it("should move interface back to default netns", () => {
@@ -167,9 +167,9 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-			"ip netns exec ns1 ip link set eth0 name eth0 netns $$
-			ip netns del ns1"
-		`);
+      "ip -n ns1 link set eth0 name eth0 netns $$
+      ip netns del ns1"
+    `);
   });
 
   it("should handle interface move without renaming", () => {
@@ -208,12 +208,12 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-			"ip netns add ns2
-			ip netns exec ns1 ip link set eth0 down
-			ip netns exec ns1 ip link set eth0 name eth0 netns ns2
-			ip netns exec ns2 ip link set eth0 up
-			ip netns del ns1"
-		`);
+      "ip netns add ns2
+      ip -n ns1 link set eth0 down
+      ip -n ns1 link set eth0 name eth0 netns ns2
+      ip -n ns2 link set eth0 up
+      ip netns del ns1"
+    `);
   });
 
   it("should handle interface renaming without move", () => {
@@ -252,10 +252,10 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-			"ip netns exec ns1 ip link set eth0 down
-			ip netns exec ns1 ip link set eth0 name wan0
-			ip netns exec ns1 ip link set wan0 up"
-		`);
+      "ip -n ns1 link set eth0 down
+      ip -n ns1 link set eth0 name wan0
+      ip -n ns1 link set wan0 up"
+    `);
   });
 
   it("should handle swapping two interface names", () => {
@@ -310,15 +310,15 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-			"ip netns exec ns1 ip link set eth0 down
-			ip netns exec ns1 ip link set eth0 name cnrm0
-			ip netns exec ns1 ip link set eth1 down
-			ip netns exec ns1 ip link set eth1 name cnrm1
-			ip netns exec ns1 ip link set cnrm0 name eth1
-			ip netns exec ns1 ip link set cnrm1 name eth0
-			ip netns exec ns1 ip link set eth1 up
-			ip netns exec ns1 ip link set eth0 up"
-		`);
+      "ip -n ns1 link set eth0 down
+      ip -n ns1 link set eth0 name cnrm0
+      ip -n ns1 link set eth1 down
+      ip -n ns1 link set eth1 name cnrm1
+      ip -n ns1 link set cnrm0 name eth1
+      ip -n ns1 link set cnrm1 name eth0
+      ip -n ns1 link set eth1 up
+      ip -n ns1 link set eth0 up"
+    `);
   });
 
   it("should apply AddBridgePort and set bridgeMember", () => {
@@ -377,7 +377,7 @@ describe("reconcile", () => {
     });
 
     const commands = getCommands(actual, desired);
-    expect(commands).toContain("bridge vlan add dev eth0 vid 20 untagged");
+    expect(commands).toMatchInlineSnapshot(`"bridge -n test-ns vlan add dev eth0 vid 20 untagged"`);
     expect(commands).not.toContain("pvid");
   });
 
@@ -411,8 +411,8 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip netns exec ns1 ip link add wg0 type wireguard
-      ip netns exec ns1 ip link set wg0 name wg0 netns ns2"
+      "ip -n ns1 link add wg0 type wireguard
+      ip -n ns1 link set wg0 name wg0 netns ns2"
     `);
     await checkReproducibleFromScratch(desired);
   });
@@ -533,11 +533,11 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-			"ip netns add ns2
-			ip netns exec ns1 iw phy phy0 set netns name ns2
-			ip netns exec ns2 ip link set wlan0 name wifi0
-			ip netns del ns1"
-		`);
+      "ip netns add ns2
+      ip netns exec ns1 iw phy phy0 set netns name ns2
+      ip -n ns2 link set wlan0 name wifi0
+      ip netns del ns1"
+    `);
   });
 
   it("should error when desired state places interfaces from the same phy in different namespaces", () => {
@@ -634,9 +634,9 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-			"ip netns exec test-ns ip link property del dev eth0-old altname eth0-old
-			ip netns exec test-ns ip link property add dev eth0 altname eth0-new"
-		`);
+      "ip -n test-ns link property del dev eth0-old altname eth0-old
+      ip -n test-ns link property add dev eth0 altname eth0-new"
+    `);
   });
 
   it("should resolve altname via checkIfaceExists", () => {

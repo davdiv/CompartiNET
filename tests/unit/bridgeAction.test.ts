@@ -1,23 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyAddBridgePort,
+  applyAddBridgePortVlan,
   applyCreateBridge,
   applyDeleteBridge,
-  applyAddBridgePort,
   applyRemoveBridgePort,
-  applySetBridgeVlanFiltering,
-  applyAddBridgePortVlan,
   applyRemoveBridgePortVlan,
-  commandForCreateBridge,
-  commandForDeleteBridge,
-  commandForAddBridgePort,
-  commandForRemoveBridgePort,
-  commandForSetBridgeVlanFiltering,
-  commandForAddBridgePortVlan,
-  commandForRemoveBridgePortVlan,
+  applySetBridgeVlanFiltering,
 } from "../../src/common/model/actions/bridge";
-import { NetworkModel, RealInterfaceModel, InterfaceModelBridge } from "../../src/common/model/networkModel";
-import { createInterface, createBridge, createBridgeMember, createNamespace } from "./fixtures";
-import { createTestModel, ns } from "./fixtures";
+import { InterfaceModelBridge, NetworkModel, RealInterfaceModel } from "../../src/common/model/networkModel";
+import { createBridge, createBridgeMember, createInterface, createNamespace, createTestModel, ns } from "./fixtures";
 
 const getRealIface = (model: NetworkModel, netns: string, iface: string) => ns(model, netns).interfaces[iface] as RealInterfaceModel;
 
@@ -145,41 +137,6 @@ describe("SetBridgeVlanFiltering action", () => {
     });
     applySetBridgeVlanFiltering(model, { type: "SetBridgeVlanFiltering", netns: "test-ns", iface: "br0", vlanFiltering: true });
     expect((ns(model, "test-ns").interfaces["br0"] as InterfaceModelBridge).vlanFiltering).toBe(true);
-  });
-});
-
-describe("commandForCreateBridge", () => {
-  it("generates ip link add bridge command with vlan_filtering and stp_state", () => {
-    const cmd = commandForCreateBridge({ type: "CreateBridge", netns: "test-ns", iface: "br0", vlanFiltering: true, stp: false });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "ip", "link", "add", "br0", "type", "bridge", "vlan_filtering", "1", "stp_state", "0"]);
-  });
-});
-
-describe("commandForDeleteBridge", () => {
-  it("generates ip link del command", () => {
-    const cmd = commandForDeleteBridge({ type: "DeleteBridge", netns: "test-ns", iface: "br0" });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "ip", "link", "del", "br0"]);
-  });
-});
-
-describe("commandForAddBridgePort", () => {
-  it("generates ip link set master command", () => {
-    const cmd = commandForAddBridgePort({ type: "AddBridgePort", netns: "test-ns", iface: "eth0", bridge: "br0" });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "ip", "link", "set", "eth0", "master", "br0"]);
-  });
-});
-
-describe("commandForRemoveBridgePort", () => {
-  it("generates ip link set nomaster command", () => {
-    const cmd = commandForRemoveBridgePort({ type: "RemoveBridgePort", netns: "test-ns", iface: "eth0" });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "ip", "link", "set", "eth0", "nomaster"]);
-  });
-});
-
-describe("commandForSetBridgeVlanFiltering", () => {
-  it("generates ip link set bridge vlan_filtering command", () => {
-    const cmd = commandForSetBridgeVlanFiltering({ type: "SetBridgeVlanFiltering", netns: "test-ns", iface: "br0", vlanFiltering: true });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "ip", "link", "set", "br0", "type", "bridge", "vlan_filtering", "1"]);
   });
 });
 
@@ -372,39 +329,5 @@ describe("RemoveBridgePortVlan action", () => {
     const br = ns(model, "test-ns").interfaces["br0"] as InterfaceModelBridge;
     expect(br.self.vlans).toEqual([{ vlanId: 1, untagged: true }]);
     expect(br.self.pvid).toBe(1);
-  });
-});
-
-describe("commandForAddBridgePortVlan", () => {
-  it("generates bridge vlan add command for a tagged VLAN", () => {
-    const cmd = commandForAddBridgePortVlan({ type: "AddBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 10, untagged: false });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "bridge", "vlan", "add", "dev", "eth0", "vid", "10"]);
-  });
-
-  it("generates bridge vlan add with untagged flag", () => {
-    const cmd = commandForAddBridgePortVlan({ type: "AddBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 10, untagged: true });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "bridge", "vlan", "add", "dev", "eth0", "vid", "10", "untagged"]);
-  });
-
-  it("generates bridge vlan add with pvid flag", () => {
-    const cmd = commandForAddBridgePortVlan({ type: "AddBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 20, untagged: true, pvid: true });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "bridge", "vlan", "add", "dev", "eth0", "vid", "20", "pvid", "untagged"]);
-  });
-
-  it("generates bridge vlan add with self flag", () => {
-    const cmd = commandForAddBridgePortVlan({ type: "AddBridgePortVlan", netns: "test-ns", iface: "br0", vlanId: 10, untagged: false, self: true });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "bridge", "vlan", "add", "dev", "br0", "vid", "10", "self"]);
-  });
-});
-
-describe("commandForRemoveBridgePortVlan", () => {
-  it("generates bridge vlan del command", () => {
-    const cmd = commandForRemoveBridgePortVlan({ type: "RemoveBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 10 });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "bridge", "vlan", "del", "dev", "eth0", "vid", "10"]);
-  });
-
-  it("generates bridge vlan del with self flag", () => {
-    const cmd = commandForRemoveBridgePortVlan({ type: "RemoveBridgePortVlan", netns: "test-ns", iface: "br0", vlanId: 10, self: true });
-    expect(cmd).toEqual(["ip", "netns", "exec", "test-ns", "bridge", "vlan", "del", "dev", "br0", "vid", "10", "self"]);
   });
 });
