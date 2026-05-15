@@ -1,16 +1,14 @@
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
 import { signal } from "signalium";
+import { afterEach, describe, expect, it } from "vitest";
 import { collectState } from "../../src/node/collectState";
-import { createReconciler } from "../../src/node/reconciler";
 import type { Feature } from "../../src/node/features";
-import { cleanupState, trackNetns } from "./harness";
+import { createReconciler } from "../../src/node/reconciler";
+import { cleanupState } from "./harness";
 
 describe("integration / service", () => {
-  afterEach(async () => {
-    await cleanupState();
-  });
+  afterEach(cleanupState);
 
   it("full service loop: config dir to apply to verify", async () => {
     const tmpDir = mkdtempSync("/tmp/compartinet-test-");
@@ -50,8 +48,6 @@ describe("integration / service", () => {
   });
 
   it("preserves birthNetns when netns and wireguard are created in the same round", async () => {
-    trackNetns("wg-test");
-
     const features$ = signal<Feature[]>([
       { type: "CreateNamespace", netns: "wg-test" },
       { type: "CreateWireguard", netns: "wg-test", iface: "wg0" },

@@ -5,17 +5,14 @@ import { reconcile } from "../../src/common/reconcile";
 import { collectState } from "../../src/node/collectState";
 import { exec } from "../../src/node/spawnUtils";
 import { normalizeModel } from "../utils";
-import { cleanupState, runCommands, trackNetns } from "./harness";
+import { cleanupState, runCommands } from "./harness";
 
 describe("integration / full reconcile", () => {
-  afterEach(async () => {
-    await cleanupState();
-  });
+  afterEach(cleanupState);
 
   it("reconciles namespace, interface state, address and route end-to-end", async () => {
     // 1. Create a namespace manually so the reconciler sees the existing lo interface
     await exec(["ip", "netns", "add", "test-ns"]);
-    trackNetns("test-ns");
 
     // 2. Collect the actual system state (now includes test-ns with lo down)
     const actual = await collectState();

@@ -1,13 +1,13 @@
 import { createSocket } from "node:dgram";
-import { afterEach, describe, expect, it } from "vitest";
 import { signal } from "signalium";
+import { afterEach, describe, expect, it } from "vitest";
 import { collectState } from "../../src/node/collectState";
-import { createReconciler } from "../../src/node/reconciler";
-import type { Feature } from "../../src/node/features";
 import { BOOTP_OP, DHCP_MESSAGE_TYPE, DHCP_OPTION, DHCP_PORT } from "../../src/node/dhcp/protocol/constants";
-import { parseDhcpPacket } from "../../src/node/dhcp/protocol/parse";
 import { formatDhcpPacket } from "../../src/node/dhcp/protocol/format";
-import { cleanupState, trackNetns } from "./harness";
+import { parseDhcpPacket } from "../../src/node/dhcp/protocol/parse";
+import type { Feature } from "../../src/node/features";
+import { createReconciler } from "../../src/node/reconciler";
+import { cleanupState } from "./harness";
 
 async function startTestDhcpServer(serverIp: string, offeredIp: string, subnetMask: string): Promise<() => Promise<void>> {
   const server = createSocket({ type: "udp4", reuseAddr: true });
@@ -82,7 +82,6 @@ describe("integration / dhcp", () => {
   });
 
   it("acquires DHCP lease and applies IP address and default route", async () => {
-    trackNetns("dhcp-client-ns");
     stopServer = await startTestDhcpServer("192.168.99.1", "192.168.99.100", "255.255.255.0");
 
     const features$ = signal<Feature[]>([

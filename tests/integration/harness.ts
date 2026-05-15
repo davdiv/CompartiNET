@@ -1,28 +1,11 @@
 import { expect } from "vitest";
 import { applyAction, commandForActions, type NetworkAction } from "../../src/common/model/actions";
-import { collectState } from "../../src/node/collectState";
-import { exec, runCommands } from "../../src/node/spawnUtils";
-import { checkReproducibleFromScratch, normalizeModel } from "../utils";
 import { applyRuntimeMeta, recordActionMeta, type InterfaceRuntimeMetaMap } from "../../src/common/model/interfaceMeta";
-
-const createdNetns = new Set<string>();
-
-export const trackNetns = (netns: string) => {
-  if (netns) {
-    createdNetns.add(netns);
-  }
-};
-
-export const cleanupState = async () => {
-  for (const netns of createdNetns) {
-    try {
-      await exec(["ip", "netns", "del", netns]);
-    } catch {
-      // ignore cleanup errors
-    }
-  }
-  createdNetns.clear();
-};
+import { collectState } from "../../src/node/collectState";
+import { Config } from "../../src/node/features";
+import { createReconciler } from "../../src/node/reconciler";
+import { runCommands } from "../../src/node/spawnUtils";
+import { checkReproducibleFromScratch, normalizeModel } from "../utils";
 
 export { runCommands };
 
@@ -36,11 +19,6 @@ export const runActionAndVerify = async (action: NetworkAction) => {
   // Execute the action under test
   const commands = commandForActions([action]);
   await runCommands(commands);
-
-  // Track created namespaces so cleanup works even if the assertion fails
-  if (action.type === "CreateNamespace") {
-    trackNetns(action.netns);
-  }
 
   // Record metadata before collecting after-state so it's available for enrichment
   recordActionMeta(runtimeMeta, action, beforeActual.namedNetns);
@@ -56,4 +34,22 @@ export const runActionAndVerify = async (action: NetworkAction) => {
   expect(normalizeModel(afterActual)).toEqual(normalizeModel(expected));
   await checkReproducibleFromScratch(beforeActual);
   await checkReproducibleFromScratch(afterActual);
+  return { beforeActual, afterActual };
 };
+
+export const applyConfig = async (config: Config) => {
+  const reconciler = createReconciler(() => config);
+  const unsub = reconciler.watcher.addListener(() => {});
+  await reconciler.applyReconciliation();
+  unsub();
+};
+
+export const cleanupState = async () =>
+  await applyConfig([
+    {
+      type: "SetInterfaceUp",
+      netns: "",
+      iface: "lo",
+      up: true,
+    },
+  ]);
