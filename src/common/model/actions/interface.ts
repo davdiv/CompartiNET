@@ -47,6 +47,7 @@ export const commandForMoveInterface = ({ oldNetns, oldIface, newNetns, newIface
   ...getIpNetnsPrefix(oldNetns),
   "link",
   "set",
+  "dev",
   oldIface,
   // always include  the name because the oldIface may be an altname
   // and comparing an altname with the new name does not make sense
@@ -55,4 +56,4 @@ export const commandForMoveInterface = ({ oldNetns, oldIface, newNetns, newIface
   ...(oldNetns !== newNetns ? ["netns", ...getNetnsTarget(newNetns)] : []),
 ];
 
-export const commandForSetInterfaceUp = ({ netns, iface, up }: SetInterfaceUpAction) => [...getIpNetnsPrefix(netns), "link", "set", iface, up ? "up" : "down"];
+export const commandForSetInterfaceUp = ({ netns, iface, up }: SetInterfaceUpAction) => [...getIpNetnsPrefix(netns), "link", "set", "dev", iface, up ? "up" : "down"];

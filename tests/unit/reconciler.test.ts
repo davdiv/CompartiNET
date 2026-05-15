@@ -123,9 +123,9 @@ describe("reconcile", () => {
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
       "ip netns add ns2
-      ip -n ns1 link set eth0 down
-      ip -n ns1 link set eth0 name wan0 netns ns2
-      ip -n ns2 link set wan0 up
+      ip -n ns1 link set dev eth0 down
+      ip -n ns1 link set dev eth0 name wan0 netns ns2
+      ip -n ns2 link set dev wan0 up
       ip netns del ns1"
     `);
   });
@@ -167,7 +167,7 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip -n ns1 link set eth0 name eth0 netns $$
+      "ip -n ns1 link set dev eth0 name eth0 netns $$
       ip netns del ns1"
     `);
   });
@@ -209,9 +209,9 @@ describe("reconcile", () => {
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
       "ip netns add ns2
-      ip -n ns1 link set eth0 down
-      ip -n ns1 link set eth0 name eth0 netns ns2
-      ip -n ns2 link set eth0 up
+      ip -n ns1 link set dev eth0 down
+      ip -n ns1 link set dev eth0 name eth0 netns ns2
+      ip -n ns2 link set dev eth0 up
       ip netns del ns1"
     `);
   });
@@ -252,9 +252,9 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip -n ns1 link set eth0 down
-      ip -n ns1 link set eth0 name wan0
-      ip -n ns1 link set wan0 up"
+      "ip -n ns1 link set dev eth0 down
+      ip -n ns1 link set dev eth0 name wan0
+      ip -n ns1 link set dev wan0 up"
     `);
   });
 
@@ -310,14 +310,14 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip -n ns1 link set eth0 down
-      ip -n ns1 link set eth0 name cnrm0
-      ip -n ns1 link set eth1 down
-      ip -n ns1 link set eth1 name cnrm1
-      ip -n ns1 link set cnrm0 name eth1
-      ip -n ns1 link set cnrm1 name eth0
-      ip -n ns1 link set eth1 up
-      ip -n ns1 link set eth0 up"
+      "ip -n ns1 link set dev eth0 down
+      ip -n ns1 link set dev eth0 name cnrm0
+      ip -n ns1 link set dev eth1 down
+      ip -n ns1 link set dev eth1 name cnrm1
+      ip -n ns1 link set dev cnrm0 name eth1
+      ip -n ns1 link set dev cnrm1 name eth0
+      ip -n ns1 link set dev eth1 up
+      ip -n ns1 link set dev eth0 up"
     `);
   });
 
@@ -411,8 +411,8 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip -n ns1 link add wg0 type wireguard
-      ip -n ns1 link set wg0 name wg0 netns ns2"
+      "ip -n ns1 link add dev wg0 type wireguard
+      ip -n ns1 link set dev wg0 name wg0 netns ns2"
     `);
     await checkReproducibleFromScratch(desired);
   });
@@ -444,7 +444,7 @@ describe("reconcile", () => {
     (ns(desired, "").interfaces["wg0"] as InterfaceModelWireguard).birthNetns = desired.namedNetns[""];
 
     const commands = getCommands(actual, desired);
-    expect(commands).toMatchInlineSnapshot(`"ip link add wg0 type wireguard"`);
+    expect(commands).toMatchInlineSnapshot(`"ip link add dev wg0 type wireguard"`);
   });
 
   it("should generate MoveWirelessPhy for netns-immutable wireless hardware", () => {
@@ -535,7 +535,7 @@ describe("reconcile", () => {
     expect(commands).toMatchInlineSnapshot(`
       "ip netns add ns2
       ip netns exec ns1 iw phy phy0 set netns name ns2
-      ip -n ns2 link set wlan0 name wifi0
+      ip -n ns2 link set dev wlan0 name wifi0
       ip netns del ns1"
     `);
   });

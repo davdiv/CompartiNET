@@ -58,9 +58,9 @@ export const applySetWireguardConfig = (model: NetworkModel, { netns, iface, con
   ifaceModel.config = config;
 };
 
-export const commandForCreateWireguard = ({ netns, iface }: CreateWireguardAction) => [...getIpNetnsPrefix(netns), "link", "add", iface, "type", "wireguard"];
+export const commandForCreateWireguard = ({ netns, iface }: CreateWireguardAction) => [...getIpNetnsPrefix(netns), "link", "add", "dev", iface, "type", "wireguard"];
 
-export const commandForDeleteWireguard = ({ netns, iface }: DeleteWireguardAction) => [...getIpNetnsPrefix(netns), "link", "del", iface];
+export const commandForDeleteWireguard = ({ netns, iface }: DeleteWireguardAction) => [...getIpNetnsPrefix(netns), "link", "del", "dev", iface];
 
 export const commandForSetWireguardConfig = ({ netns, iface, config }: SetWireguardConfigAction): Command => [
   ...getNetnsPrefix(netns),

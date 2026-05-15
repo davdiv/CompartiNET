@@ -157,7 +157,7 @@ export const applySetBridgeVlanFiltering = (model: NetworkModel, { netns, iface,
 };
 
 export const commandForCreateBridge = ({ netns, iface, vlanFiltering, stp }: CreateBridgeAction) => {
-  const cmd = [...getIpNetnsPrefix(netns), "link", "add", iface, "type", "bridge"];
+  const cmd = [...getIpNetnsPrefix(netns), "link", "add", "dev", iface, "type", "bridge"];
   if (vlanFiltering) {
     cmd.push("vlan_filtering", "1");
   }
@@ -169,16 +169,17 @@ export const commandForCreateBridge = ({ netns, iface, vlanFiltering, stp }: Cre
   return cmd;
 };
 
-export const commandForDeleteBridge = ({ netns, iface }: DeleteBridgeAction) => [...getIpNetnsPrefix(netns), "link", "del", iface];
+export const commandForDeleteBridge = ({ netns, iface }: DeleteBridgeAction) => [...getIpNetnsPrefix(netns), "link", "del", "dev", iface];
 
-export const commandForAddBridgePort = ({ netns, iface, bridge }: AddBridgePortAction) => [...getIpNetnsPrefix(netns), "link", "set", iface, "master", bridge];
+export const commandForAddBridgePort = ({ netns, iface, bridge }: AddBridgePortAction) => [...getIpNetnsPrefix(netns), "link", "set", "dev", iface, "master", bridge];
 
-export const commandForRemoveBridgePort = ({ netns, iface }: RemoveBridgePortAction) => [...getIpNetnsPrefix(netns), "link", "set", iface, "nomaster"];
+export const commandForRemoveBridgePort = ({ netns, iface }: RemoveBridgePortAction) => [...getIpNetnsPrefix(netns), "link", "set", "dev", iface, "nomaster"];
 
 export const commandForSetBridgeVlanFiltering = ({ netns, iface, vlanFiltering }: SetBridgeVlanFilteringAction) => [
   ...getIpNetnsPrefix(netns),
   "link",
   "set",
+  "dev",
   iface,
   "type",
   "bridge",
