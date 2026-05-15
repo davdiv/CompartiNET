@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 import babel from "@rolldown/plugin-babel";
 import { signaliumPreset } from "signalium/transform";
 import { schemaPlugin } from "./vite.schemaplugin";
+import { unshareForkPool } from "./tests/unshareForkPool";
 
 export default defineConfig({
   plugins: [
@@ -24,7 +25,7 @@ export default defineConfig({
         test: {
           name: "integration",
           include: ["tests/integration/**/*.test.ts"],
-          fileParallelism: false,
+          pool: unshareForkPool(),
         },
       },
     ],
