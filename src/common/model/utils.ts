@@ -1,20 +1,20 @@
-import { NamespaceModel, NetnsInode, NetworkModel } from "./networkModel";
+import { NamespaceModel, NetnsIno, NetworkModel } from "./networkModel";
 
 export const inconsistentModelFailure = (error: string) => new Error(error);
 
-export const getNetnsName = (model: NetworkModel, id: NetnsInode): string | undefined => {
+export const getNetnsName = (model: NetworkModel, id: NetnsIno): string | undefined => {
   for (const [name, inode] of Object.entries(model.namedNetns)) {
     if (inode === id) return name;
   }
   return undefined;
 };
 
-export const requireNetnsName = (model: NetworkModel, id: NetnsInode): string => getNetnsName(model, id) ?? `<unknown-netns:${id}>`;
+export const requireNetnsName = (model: NetworkModel, id: NetnsIno): string => getNetnsName(model, id) ?? `<unknown-netns:${id}>`;
 
 export const getNetns = (model: NetworkModel, name: string): NamespaceModel | undefined => {
   const inode = model.namedNetns[name];
   if (inode === undefined) return undefined;
-  return Object.hasOwn(model.netnsById, inode) ? model.netnsById[inode] : undefined;
+  return Object.hasOwn(model.netnsByIno, inode) ? model.netnsByIno[inode] : undefined;
 };
 
 export const getIface = (netnsModel: NamespaceModel, iface: string) => (Object.hasOwn(netnsModel.interfaces, iface) ? netnsModel.interfaces[iface] : undefined);

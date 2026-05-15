@@ -1,5 +1,5 @@
 import { Command, getIpNetnsPrefix, getNetnsPrefix } from "../commands";
-import { InterfaceModelWireguard, NetnsInode, NetworkModel, WireguardConfig } from "../networkModel";
+import { InterfaceModelWireguard, NetnsIno, NetworkModel, WireguardConfig } from "../networkModel";
 import { checkIfaceExists, checkIfaceNotExists, checkNetnsExists } from "../utils";
 import { formatWgConfig } from "../wg/formatter";
 import { removeInterface } from "./utils";
@@ -23,7 +23,7 @@ export interface SetWireguardConfigAction {
   config: WireguardConfig;
 }
 
-export const newWireguard = (birthNetns?: NetnsInode): InterfaceModelWireguard => ({
+export const newWireguard = (birthNetns?: NetnsIno): InterfaceModelWireguard => ({
   type: "wireguard",
   birthNetns,
   up: false,

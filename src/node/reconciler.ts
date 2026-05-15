@@ -5,7 +5,7 @@ import { commandForAction } from "../common/model/actions";
 import { formatCommand } from "../common/model/commands";
 import { applyRuntimeMeta, recordActionMeta, type InterfaceRuntimeMetaMap } from "../common/model/interfaceMeta";
 import { reconcile } from "../common/reconcile";
-import { collectState, getNs } from "./collectState";
+import { collectState, getNetnsIno } from "./collectState";
 import { createServicesManager, processFeatures, type Feature } from "./features";
 import { runCommand } from "./spawnUtils";
 
@@ -51,7 +51,7 @@ export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Featu
         console.log(formatCommand(command));
         await runCommand(command);
         if (action.type === "CreateNamespace") {
-          namedNetns[action.netns] = await getNs(action.netns);
+          namedNetns[action.netns] = await getNetnsIno(action.netns);
         }
         recordActionMeta(runtimeMeta, action, namedNetns);
       }

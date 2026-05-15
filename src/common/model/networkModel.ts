@@ -1,11 +1,11 @@
 // Note: don't use Record<A,B> in this file as it is not supported by typescript-json-schema
 
-export type NetnsInode = number;
+export type NetnsIno = number;
 
 export interface NetworkModel {
   // The default namespace has an empty string "" key
-  namedNetns: { [name: string]: NetnsInode };
-  netnsById: { [id: NetnsInode]: NamespaceModel };
+  namedNetns: { [name: string]: NetnsIno };
+  netnsByIno: { [ino: NetnsIno]: NamespaceModel };
 }
 
 export interface ListeningSocket {
@@ -76,7 +76,7 @@ export interface InterfaceModelBridge extends InterfaceModelBase {
 
 export interface InterfaceModelVeth extends InterfaceModelBase {
   type: "veth";
-  peerNetns: NetnsInode;
+  peerNetns: NetnsIno;
   peerIface: string;
 }
 
@@ -113,7 +113,7 @@ export interface InterfaceModelWireguard extends InterfaceModelBase {
    * birthNetns is tracked because it is the netns from which Wireguard sends and receives encrypted packets.
    * Note that the configuration of the interface must be done in the current netns of the interface, not the birthNetns
    */
-  birthNetns?: NetnsInode;
+  birthNetns?: NetnsIno;
   config: WireguardConfig;
 }
 
@@ -133,6 +133,6 @@ export interface RouteModel extends IpAddressModel {
 }
 
 export interface InterfaceLink {
-  netns: NetnsInode;
+  netns: NetnsIno;
   iface: string;
 }

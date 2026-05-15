@@ -70,7 +70,7 @@ export interface IPRoute2NetnsId {
 }
 
 export interface IPRoute2NetnsState {
-  ns: number;
+  ino: number;
   name: string[];
   addr: IPRoute2Interface[];
   route: IPRoute2Route[];

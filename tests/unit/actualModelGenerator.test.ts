@@ -6,7 +6,7 @@ describe("generateActualNetworkModel", () => {
   it("parses a basic interface with addresses", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345677,
+        ino: 4012345677,
         name: [""],
         addr: [
           {
@@ -33,7 +33,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["eth0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["eth0"]).toMatchInlineSnapshot(`
 			{
 			  "addresses": [
 			    {
@@ -57,7 +57,7 @@ describe("generateActualNetworkModel", () => {
   it("parses a bridge with vlan filtering and stp", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345677,
+        ino: 4012345677,
         name: [""],
         addr: [
           {
@@ -81,7 +81,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["br0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["br0"]).toMatchInlineSnapshot(`
 			{
 			  "addresses": [],
 			  "altnames": [],
@@ -103,7 +103,7 @@ describe("generateActualNetworkModel", () => {
   it("parses a bridge member interface with vlan info", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345677,
+        ino: 4012345677,
         name: [""],
         addr: [
           {
@@ -148,7 +148,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["eth0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["eth0"]).toMatchInlineSnapshot(`
 			{
 			  "addresses": [],
 			  "altnames": [],
@@ -180,7 +180,7 @@ describe("generateActualNetworkModel", () => {
   it("parses a veth with peer name", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345677,
+        ino: 4012345677,
         name: ["ns1"],
         addr: [
           {
@@ -202,7 +202,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns["ns1"]].interfaces["veth0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns["ns1"]].interfaces["veth0"]).toMatchInlineSnapshot(`
       {
         "addresses": [],
         "altnames": [],
@@ -219,7 +219,7 @@ describe("generateActualNetworkModel", () => {
   it("parses a cross-namespace veth with link_index and link_netnsid", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345677,
+        ino: 4012345677,
         name: ["ns1"],
         addr: [
           {
@@ -241,7 +241,7 @@ describe("generateActualNetworkModel", () => {
         netnsIds: [{ nsid: 0, name: "ns2" }],
       },
       {
-        ns: 4012345678,
+        ino: 4012345678,
         name: ["ns2"],
         addr: [
           {
@@ -265,7 +265,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns["ns1"]].interfaces["veth0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns["ns1"]].interfaces["veth0"]).toMatchInlineSnapshot(`
       {
         "addresses": [],
         "altnames": [],
@@ -277,7 +277,7 @@ describe("generateActualNetworkModel", () => {
         "up": false,
       }
     `);
-    expect(model.netnsById[model.namedNetns["ns2"]].interfaces["veth1"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns["ns2"]].interfaces["veth1"]).toMatchInlineSnapshot(`
       {
         "addresses": [],
         "altnames": [],
@@ -294,7 +294,7 @@ describe("generateActualNetworkModel", () => {
   it("parses a wireguard interface", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345678,
+        ino: 4012345678,
         name: [""],
         addr: [
           {
@@ -318,7 +318,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["wg0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["wg0"]).toMatchInlineSnapshot(`
 			{
 			  "addresses": [],
 			  "altnames": [],
@@ -351,7 +351,7 @@ describe("generateActualNetworkModel", () => {
   it("parses a hardware interface", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345678,
+        ino: 4012345678,
         name: [""],
         addr: [
           {
@@ -373,7 +373,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["eth0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["eth0"]).toMatchInlineSnapshot(`
 			{
 			  "addresses": [],
 			  "altnames": [],
@@ -391,7 +391,7 @@ describe("generateActualNetworkModel", () => {
   it("parses a wireless interface with phyName", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345678,
+        ino: 4012345678,
         name: [""],
         addr: [
           {
@@ -416,7 +416,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["wlan0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["wlan0"]).toMatchInlineSnapshot(`
 			{
 			  "addresses": [],
 			  "altnames": [],
@@ -436,7 +436,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         name: [""],
-        ns: 4012345678,
+        ino: 4012345678,
         addr: [],
         route: [
           {
@@ -463,7 +463,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns[""]].routes).toEqual([
+    expect(model.netnsByIno[model.namedNetns[""]].routes).toEqual([
       {
         family: "ipv4",
         address: "0.0.0.0",
@@ -478,7 +478,7 @@ describe("generateActualNetworkModel", () => {
   it("parses multiple namespaces", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345677,
+        ino: 4012345677,
         name: [""],
         addr: [
           {
@@ -496,7 +496,7 @@ describe("generateActualNetworkModel", () => {
         route: [],
       },
       {
-        ns: 4012345678,
+        ino: 4012345678,
         name: ["test-ns"],
         addr: [
           {
@@ -522,7 +522,7 @@ describe("generateActualNetworkModel", () => {
   it("parses an interface with altnames", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        ns: 4012345678,
+        ino: 4012345678,
         name: [""],
         addr: [
           {
@@ -543,7 +543,7 @@ describe("generateActualNetworkModel", () => {
     ];
 
     const model = generateActualNetworkModel(state);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["eth0"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["eth0"]).toMatchInlineSnapshot(`
 			{
 			  "addresses": [],
 			  "altnames": [
@@ -559,13 +559,13 @@ describe("generateActualNetworkModel", () => {
 			  "up": true,
 			}
 		`);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["eth0-alt"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["eth0-alt"]).toMatchInlineSnapshot(`
 			{
 			  "iface": "eth0",
 			  "type": "altname",
 			}
 		`);
-    expect(model.netnsById[model.namedNetns[""]].interfaces["enx001122334455"]).toMatchInlineSnapshot(`
+    expect(model.netnsByIno[model.namedNetns[""]].interfaces["enx001122334455"]).toMatchInlineSnapshot(`
 			{
 			  "iface": "eth0",
 			  "type": "altname",

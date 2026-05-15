@@ -19,7 +19,7 @@ describe("integration / full reconcile", () => {
 
     // 3. Build desired state: bring lo up, add an IP, add a route
     const desired = structuredClone(actual);
-    const testNs = desired.netnsById[desired.namedNetns["test-ns"]];
+    const testNs = desired.netnsByIno[desired.namedNetns["test-ns"]];
     (testNs.interfaces["lo"] as RealInterfaceModel).up = true;
     (testNs.interfaces["lo"] as RealInterfaceModel).addresses = [
       { family: "ipv4", address: "10.0.0.1", prefixLength: 32 },

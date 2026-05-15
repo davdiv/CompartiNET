@@ -12,7 +12,7 @@ import { parseWgConfig } from "./wg/parser";
 export function generateActualNetworkModel(stateByNetns: IPRoute2NetnsState[]): NetworkModel {
   const model: NetworkModel = {
     namedNetns: {},
-    netnsById: {},
+    netnsByIno: {},
   };
 
   const nameMap: Record<string, number> = {};
@@ -21,10 +21,10 @@ export function generateActualNetworkModel(stateByNetns: IPRoute2NetnsState[]): 
 
   for (const nsState of stateByNetns) {
     for (const name of nsState.name) {
-      nameMap[name] = nsState.ns;
+      nameMap[name] = nsState.ino;
     }
-    ifindexMap[nsState.ns] = Object.fromEntries((nsState.addr ?? []).map(({ ifindex, ifname }) => [ifindex, ifname]));
-    nsidMap[nsState.ns] = Object.fromEntries((nsState.netnsIds ?? []).filter(({ name }) => !!name).map(({ nsid, name }) => [nsid, name!]));
+    ifindexMap[nsState.ino] = Object.fromEntries((nsState.addr ?? []).map(({ ifindex, ifname }) => [ifindex, ifname]));
+    nsidMap[nsState.ino] = Object.fromEntries((nsState.netnsIds ?? []).filter(({ name }) => !!name).map(({ nsid, name }) => [nsid, name!]));
   }
 
   for (const nsState of stateByNetns) {
@@ -34,9 +34,9 @@ export function generateActualNetworkModel(stateByNetns: IPRoute2NetnsState[]): 
       listeningSockets: [],
     };
     for (const name of nsState.name) {
-      model.namedNetns[name] = nsState.ns;
+      model.namedNetns[name] = nsState.ino;
     }
-    model.netnsById[nsState.ns] = netnsModel;
+    model.netnsByIno[nsState.ino] = netnsModel;
     const iwDev = parseIwDev(nsState.iwDev);
 
     // Build map of bridge VLAN info per interface
@@ -114,7 +114,7 @@ export function generateActualNetworkModel(stateByNetns: IPRoute2NetnsState[]): 
           peerNetns = nameMap[nsState.name[0]];
         } else if (typeof iface.link_index === "number") {
           if (typeof iface.link_netnsid === "number") {
-            const nsMap = Object.hasOwn(nsidMap, nsState.ns) ? nsidMap[nsState.ns] : undefined;
+            const nsMap = Object.hasOwn(nsidMap, nsState.ino) ? nsidMap[nsState.ino] : undefined;
             if (nsMap) {
               const mappedNs = Object.hasOwn(nsMap, iface.link_netnsid) ? nsMap[iface.link_netnsid] : undefined;
               if (mappedNs) {

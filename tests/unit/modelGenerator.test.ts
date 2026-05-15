@@ -19,7 +19,7 @@ describe("desiredModelFromFeatures", () => {
           "": 0,
           "test-ns": 1,
         },
-        "netnsById": {
+        "netnsByIno": {
           "0": {
             "interfaces": {
               "lo": {
@@ -79,7 +79,7 @@ describe("desiredModelFromFeatures", () => {
           "": 0,
           "test-ns": 2,
         },
-        "netnsById": {
+        "netnsByIno": {
           "0": {
             "interfaces": {
               "lo": {
@@ -146,7 +146,7 @@ describe("desiredModelFromFeatures", () => {
           "": 0,
           "test-ns": 3,
         },
-        "netnsById": {
+        "netnsByIno": {
           "0": {
             "interfaces": {
               "lo": {
@@ -213,7 +213,7 @@ describe("desiredModelFromFeatures", () => {
           "": 0,
           "test-ns": 4,
         },
-        "netnsById": {
+        "netnsByIno": {
           "0": {
             "interfaces": {
               "lo": {
@@ -283,7 +283,7 @@ describe("desiredModelFromFeatures", () => {
           "ns1": 5,
           "ns2": 6,
         },
-        "netnsById": {
+        "netnsByIno": {
           "0": {
             "interfaces": {
               "lo": {
@@ -382,7 +382,7 @@ describe("desiredModelFromFeatures", () => {
           "": 0,
           "test-ns": 7,
         },
-        "netnsById": {
+        "netnsByIno": {
           "0": {
             "interfaces": {
               "lo": {

@@ -31,7 +31,7 @@ let nextInode = 1;
 
 export const newNetworkModel = (): NetworkModel => ({
   namedNetns: { "": 0 },
-  netnsById: { 0: newNetns() },
+  netnsByIno: { 0: newNetns() },
 });
 
 export const applyCreateNamespace = (model: NetworkModel, { netns }: CreateNamespaceAction) => {
@@ -44,7 +44,7 @@ export const applyCreateNamespace = (model: NetworkModel, { netns }: CreateNames
   }
   const inode = nextInode++;
   model.namedNetns[netns] = inode;
-  model.netnsById[inode] = newNetns();
+  model.netnsByIno[inode] = newNetns();
 };
 
 export const applyDeleteNamespace = (model: NetworkModel, { netns }: DeleteNamespaceAction) => {
@@ -53,7 +53,7 @@ export const applyDeleteNamespace = (model: NetworkModel, { netns }: DeleteNames
   }
   checkNetnsExists(model, netns);
   const inode = model.namedNetns[netns];
-  delete model.netnsById[inode];
+  delete model.netnsByIno[inode];
   delete model.namedNetns[netns];
 };
 

@@ -19,7 +19,7 @@ describe("integration / listening sockets", () => {
     const server = await worker.call<Server>({ type: "create-tcp-server", host: "10.99.0.2", port: 9999 });
     try {
       const state = await collectState();
-      const ns = state.netnsById[state.namedNetns["socket-test-ns"]];
+      const ns = state.netnsByIno[state.namedNetns["socket-test-ns"]];
       expect(ns).toBeDefined();
       expect(ns.listeningSockets).toEqual(expect.arrayContaining([expect.objectContaining({ protocol: "tcp4", host: "10.99.0.2", port: 9999 })]));
     } finally {
@@ -39,7 +39,7 @@ describe("integration / listening sockets", () => {
     const server = await child.call<Server>({ type: "create-tcp-server", host: "fe80::1%veth-zone-cli", port: 9999 });
     try {
       const state = await collectState();
-      const ns = state.netnsById[state.namedNetns["zone-test-ns"]];
+      const ns = state.netnsByIno[state.namedNetns["zone-test-ns"]];
       expect(ns.listeningSockets).toEqual(
         expect.arrayContaining([
           expect.objectContaining({

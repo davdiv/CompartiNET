@@ -5,16 +5,16 @@ let testInodeCounter = 1;
 
 export const createTestModel = (namespaces: { [name: string]: NamespaceModel }): NetworkModel => {
   const namedNetns: NetworkModel["namedNetns"] = {};
-  const netnsById: NetworkModel["netnsById"] = {};
+  const netnsById: NetworkModel["netnsByIno"] = {};
   for (const [name, ns] of Object.entries(namespaces)) {
     const id = testInodeCounter++;
     namedNetns[name] = id;
     netnsById[id] = ns;
   }
-  return { namedNetns, netnsById };
+  return { namedNetns, netnsByIno: netnsById };
 };
 
-export const ns = (model: NetworkModel, name: string): NamespaceModel => model.netnsById[model.namedNetns[name]];
+export const ns = (model: NetworkModel, name: string): NamespaceModel => model.netnsByIno[model.namedNetns[name]];
 
 export const createNamespace = (interfaces: Record<string, InterfaceModel> = {}, routes: RouteModel[] = []): NamespaceModel => ({
   interfaces,

@@ -24,7 +24,7 @@ describe("integration / service", () => {
 
     const state = await collectState();
     expect(Object.keys(state.namedNetns)).toContain("svc-ns");
-    const svcNs = state.netnsById[state.namedNetns["svc-ns"]];
+    const svcNs = state.netnsByIno[state.namedNetns["svc-ns"]];
     expect(Object.keys(svcNs.interfaces)).toContain("br0");
     expect(svcNs.interfaces["br0"].type).toBe("bridge");
   });
@@ -62,10 +62,10 @@ describe("integration / service", () => {
     reconciler.refreshState();
     const state = await reconciler.currentState();
     const nsInode = state.namedNetns["wg-test"];
-    expect(state.netnsById[nsInode].interfaces["wg0"]).toBeDefined();
+    expect(state.netnsByIno[nsInode].interfaces["wg0"]).toBeDefined();
 
     // birthNetns should equal the real kernel inode of the birth namespace
-    const wgIface = state.netnsById[nsInode].interfaces["wg0"];
+    const wgIface = state.netnsByIno[nsInode].interfaces["wg0"];
     expect(wgIface.type).toBe("wireguard");
     if (wgIface.type === "wireguard") {
       expect(wgIface.birthNetns).toBe(nsInode);

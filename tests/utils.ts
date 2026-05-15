@@ -29,12 +29,12 @@ export const normalizeModel = (model: NetworkModel): NetworkModel => {
 
   const remapInode = (inode: number) => inodeMap.get(inode) ?? inode;
 
-  const result: NetworkModel = { namedNetns: {}, netnsById: {} };
+  const result: NetworkModel = { namedNetns: {}, netnsByIno: {} };
   for (const name of names) {
     const oldInode = model.namedNetns[name];
     const newInode = inodeMap.get(oldInode)!;
     result.namedNetns[name] = newInode;
-    const ns = model.netnsById[oldInode];
+    const ns = model.netnsByIno[oldInode];
     const interfaces: typeof ns.interfaces = {};
     for (const [ifaceName, iface] of Object.entries(ns.interfaces)) {
       const rest = { ...iface };
@@ -59,7 +59,7 @@ export const normalizeModel = (model: NetworkModel): NetworkModel => {
       }
       interfaces[ifaceName] = rest;
     }
-    result.netnsById[newInode] = {
+    result.netnsByIno[newInode] = {
       interfaces,
       routes: ns.routes,
       listeningSockets: ns.listeningSockets,

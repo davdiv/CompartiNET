@@ -1,5 +1,5 @@
 import { CommandArg, getIpNetnsPrefix, getNetnsTarget } from "../commands";
-import { InterfaceModelVeth, NetnsInode, NetworkModel } from "../networkModel";
+import { InterfaceModelVeth, NetnsIno, NetworkModel } from "../networkModel";
 import { checkIfaceExists, checkIfaceNotExists, checkNetnsExists, requireNetnsName } from "../utils";
 import { removeInterface } from "./utils";
 
@@ -17,7 +17,7 @@ export interface DeleteVethAction {
   iface: string;
 }
 
-export const newVeth = (peerNetns: NetnsInode, peerIface: string): InterfaceModelVeth => ({
+export const newVeth = (peerNetns: NetnsIno, peerIface: string): InterfaceModelVeth => ({
   type: "veth",
   up: false,
   addresses: [],

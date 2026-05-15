@@ -1,9 +1,9 @@
 import type { NetworkAction } from "../model/actions";
-import { NetnsInode, NetworkModel } from "./networkModel";
+import { NetnsIno, NetworkModel } from "./networkModel";
 
 export interface InterfaceRuntimeMeta {
   /** The namespace inode where a WireGuard interface was created. */
-  birthNetns?: NetnsInode;
+  birthNetns?: NetnsIno;
 }
 
 /** Keyed by [netnsInode][ifaceName] — the interface's CURRENT location. */
@@ -13,7 +13,7 @@ export type InterfaceRuntimeMetaMap = Record<number, Record<string, InterfaceRun
 export function applyRuntimeMeta(model: NetworkModel, meta: InterfaceRuntimeMetaMap): void {
   for (const inodeStr of Object.keys(meta)) {
     const inode = Number(inodeStr);
-    const nsModel = model.netnsById[inode];
+    const nsModel = model.netnsByIno[inode];
     if (!nsModel) {
       delete meta[inode];
       continue;
