@@ -105,7 +105,7 @@ describe("ConfigDirectoryHandler", () => {
 
     const { desiredState: model } = await processFeatures([{ type: "ConfigDirectory", path: dir }], null!);
     expect(model.namedNetns).toEqual({ "": 0 });
-    expect(model.netnsByIno).toEqual({ 0: { interfaces: { lo: expect.anything() }, routes: [], listeningSockets: [] } });
+    expect(model.netnsByIno).toEqual({ 0: { names: [""], interfaces: { lo: expect.anything() }, routes: [], listeningSockets: [] } });
   });
 
   it("ignores files with unsupported extensions", async () => {
@@ -115,7 +115,7 @@ describe("ConfigDirectoryHandler", () => {
 
     const { desiredState: model } = await processFeatures([{ type: "ConfigDirectory", path: dir }], null!);
     expect(model.namedNetns).toEqual({ "": 0 });
-    expect(model.netnsByIno).toEqual({ 0: { interfaces: { lo: expect.anything() }, routes: [], listeningSockets: [] } });
+    expect(model.netnsByIno).toEqual({ 0: { names: [""], interfaces: { lo: expect.anything() }, routes: [], listeningSockets: [] } });
   });
 
   it("processes files in alphabetical order", async () => {

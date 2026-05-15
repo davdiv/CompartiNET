@@ -5,6 +5,7 @@ import { validate as isModelValid } from "../src/common/model/validator";
 import { modelToConfig } from "../src/common/reconcile/modelToConfig";
 import { validate as isConfigValid } from "../src/node/features/validator";
 import { processFeatures } from "../src/node/features";
+import { checkModelConsistency } from "../src/common/model/consistency";
 
 /**
  * Normalizes a network model for comparison by stripping fields that the current
@@ -60,6 +61,7 @@ export const normalizeModel = (model: NetworkModel): NetworkModel => {
       interfaces[ifaceName] = rest;
     }
     result.netnsByIno[newInode] = {
+      names: [name],
       interfaces,
       routes: ns.routes,
       listeningSockets: ns.listeningSockets,
@@ -102,4 +104,5 @@ export const validateModel = (model: any) => {
   if (!isModelValid(model)) {
     expect.fail(`Invalid model: ${JSON.stringify(model, null, 2)}\nValidation errors: ${stringifyValidationErrors(isModelValid.errors)}`);
   }
+  checkModelConsistency(model);
 };

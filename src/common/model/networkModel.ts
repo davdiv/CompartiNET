@@ -17,6 +17,7 @@ export interface ListeningSocket {
 }
 
 export interface NamespaceModel {
+  names: string[];
   interfaces: { [name: string]: InterfaceModel };
   routes: RouteModel[];
   listeningSockets: ListeningSocket[];

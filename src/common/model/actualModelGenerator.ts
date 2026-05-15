@@ -29,6 +29,7 @@ export function generateActualNetworkModel(stateByNetns: IPRoute2NetnsState[]): 
 
   for (const nsState of stateByNetns) {
     const netnsModel: NamespaceModel = {
+      names: [...nsState.name],
       interfaces: {},
       routes: [],
       listeningSockets: [],

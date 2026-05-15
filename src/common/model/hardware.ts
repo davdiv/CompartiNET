@@ -3,7 +3,8 @@ import { InterfaceLink, NetworkModel } from "./networkModel";
 
 export const getHardwareInterfaceMap = (model: NetworkModel): Record<string, InterfaceLink[]> => {
   const map: Record<string, InterfaceLink[]> = {};
-  for (const inode of Object.values(model.namedNetns)) {
+  for (const inodeStr of Object.keys(model.netnsByIno)) {
+    const inode = Number(inodeStr);
     const netnsModel = model.netnsByIno[inode];
     for (const [iface, ifaceModel] of Object.entries(netnsModel.interfaces)) {
       if (ifaceModel.type === "hardware" && (ifaceModel.hardwareBus || ifaceModel.hardwareDevice)) {
@@ -25,8 +26,9 @@ export const getHardwareInterfaceMap = (model: NetworkModel): Record<string, Int
 
 export const getHardwareMatchActions = (model: NetworkModel): MatchHardwareAction[] => {
   const res: MatchHardwareAction[] = [];
-  for (const [name, inode] of Object.entries(model.namedNetns)) {
-    const netnsModel = model.netnsByIno[inode];
+  for (const netnsModel of Object.values(model.netnsByIno)) {
+    const name = netnsModel.names[0];
+    if (name === undefined) continue;
     for (const [iface, ifaceModel] of Object.entries(netnsModel.interfaces)) {
       if (ifaceModel.type === "hardware") {
         res.push({

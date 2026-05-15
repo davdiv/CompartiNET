@@ -3,13 +3,13 @@ import { parseIpAddressModel } from "../../src/common/model/ip";
 
 let testInodeCounter = 1;
 
-export const createTestModel = (namespaces: { [name: string]: NamespaceModel }): NetworkModel => {
+export const createTestModel = (namespaces: { [name: string]: Omit<NamespaceModel, "names"> }): NetworkModel => {
   const namedNetns: NetworkModel["namedNetns"] = {};
   const netnsById: NetworkModel["netnsByIno"] = {};
   for (const [name, ns] of Object.entries(namespaces)) {
     const id = testInodeCounter++;
     namedNetns[name] = id;
-    netnsById[id] = ns;
+    netnsById[id] = { ...ns, names: [name] };
   }
   return { namedNetns, netnsByIno: netnsById };
 };
@@ -17,6 +17,7 @@ export const createTestModel = (namespaces: { [name: string]: NamespaceModel }):
 export const ns = (model: NetworkModel, name: string): NamespaceModel => model.netnsByIno[model.namedNetns[name]];
 
 export const createNamespace = (interfaces: Record<string, InterfaceModel> = {}, routes: RouteModel[] = []): NamespaceModel => ({
+  names: [],
   interfaces,
   routes,
   listeningSockets: [],

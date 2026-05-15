@@ -10,11 +10,15 @@ export interface OpenSocketAction {
   socket: ListeningSocket;
 }
 
+export const sameSocketKey = (a: ListeningSocket, b: ListeningSocket) => a.protocol === b.protocol && a.host === b.host && a.zone === b.zone && a.port === b.port;
+
+export const formatSocket = (s: ListeningSocket) => `${s.protocol}/${s.host}${s.zone ? "%" + s.zone : ""}:${s.port}`;
+
 export const applyOpenSocket = (model: NetworkModel, { netns, socket }: OpenSocketAction) => {
   const ns = checkNetnsExists(model, netns);
-  const duplicate = ns.listeningSockets.find((s) => s.protocol === socket.protocol && s.host === socket.host && s.zone === socket.zone && s.port === socket.port);
+  const duplicate = ns.listeningSockets.find((s) => sameSocketKey(s, socket));
   if (duplicate) {
-    throw new Error(`Duplicate listening socket ${socket.protocol}/${socket.host}${socket.zone ? "%" + socket.zone : ""}:${socket.port} in namespace ${netns}`);
+    throw new Error(`Duplicate listening socket ${formatSocket(socket)} in namespace ${netns}`);
   }
   ns.listeningSockets.push(socket);
 };

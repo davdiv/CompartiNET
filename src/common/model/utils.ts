@@ -3,10 +3,8 @@ import { NamespaceModel, NetnsIno, NetworkModel } from "./networkModel";
 export const inconsistentModelFailure = (error: string) => new Error(error);
 
 export const getNetnsName = (model: NetworkModel, id: NetnsIno): string | undefined => {
-  for (const [name, inode] of Object.entries(model.namedNetns)) {
-    if (inode === id) return name;
-  }
-  return undefined;
+  if (!Object.hasOwn(model.netnsByIno, id)) return undefined;
+  return model.netnsByIno[id].names[0];
 };
 
 export const requireNetnsName = (model: NetworkModel, id: NetnsIno): string => getNetnsName(model, id) ?? `<unknown-netns:${id}>`;

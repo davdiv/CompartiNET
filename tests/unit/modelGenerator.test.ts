@@ -33,6 +33,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "",
+            ],
             "routes": [],
           },
           "1": {
@@ -58,6 +61,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "test-ns",
+            ],
             "routes": [],
           },
         },
@@ -93,6 +99,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "",
+            ],
             "routes": [],
           },
           "2": {
@@ -124,6 +133,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "test-ns",
+            ],
             "routes": [],
           },
         },
@@ -160,6 +172,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "",
+            ],
             "routes": [],
           },
           "3": {
@@ -185,6 +200,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "test-ns",
+            ],
             "routes": [
               {
                 "address": "0.0.0.0",
@@ -227,6 +245,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "",
+            ],
             "routes": [],
           },
           "4": {
@@ -261,6 +282,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "test-ns",
+            ],
             "routes": [],
           },
         },
@@ -297,6 +321,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "",
+            ],
             "routes": [],
           },
           "5": {
@@ -321,6 +348,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "ns1",
+            ],
             "routes": [],
           },
           "6": {
@@ -345,6 +375,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "ns2",
+            ],
             "routes": [],
           },
         },
@@ -396,6 +429,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "",
+            ],
             "routes": [],
           },
           "7": {
@@ -437,6 +473,9 @@ describe("desiredModelFromFeatures", () => {
               },
             },
             "listeningSockets": [],
+            "names": [
+              "test-ns",
+            ],
             "routes": [],
           },
         },

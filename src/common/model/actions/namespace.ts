@@ -11,7 +11,8 @@ export interface DeleteNamespaceAction {
   netns: string;
 }
 
-export const newNetns = (): NamespaceModel => ({
+export const newNetns = (names: string[] = []): NamespaceModel => ({
+  names,
   interfaces: {
     lo: {
       type: "loopback",
@@ -31,7 +32,7 @@ let nextInode = 1;
 
 export const newNetworkModel = (): NetworkModel => ({
   namedNetns: { "": 0 },
-  netnsByIno: { 0: newNetns() },
+  netnsByIno: { 0: newNetns([""]) },
 });
 
 export const applyCreateNamespace = (model: NetworkModel, { netns }: CreateNamespaceAction) => {
@@ -44,17 +45,19 @@ export const applyCreateNamespace = (model: NetworkModel, { netns }: CreateNames
   }
   const inode = nextInode++;
   model.namedNetns[netns] = inode;
-  model.netnsByIno[inode] = newNetns();
+  model.netnsByIno[inode] = newNetns([netns]);
 };
 
 export const applyDeleteNamespace = (model: NetworkModel, { netns }: DeleteNamespaceAction) => {
   if (!netns) {
     throw new Error(`Cannot remove default netns`);
   }
-  checkNetnsExists(model, netns);
+  const ns = checkNetnsExists(model, netns);
   const inode = model.namedNetns[netns];
+  for (const name of ns.names) {
+    delete model.namedNetns[name];
+  }
   delete model.netnsByIno[inode];
-  delete model.namedNetns[netns];
 };
 
 export const commandForCreateNamespace = ({ netns }: CreateNamespaceAction) => ["ip", "netns", "add", netns];
