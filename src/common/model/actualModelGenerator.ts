@@ -128,6 +128,11 @@ export function generateActualNetworkModel(stateByNetns: IPRoute2NetnsState[]): 
           // TODO: avoid this
           if (!peerIface) {
             for (const otherNs of stateByNetns) {
+              // The peer must be in a different namespace (same-namespace peers are handled above
+              // via `typeof iface.link === "string"`). Skipping the current namespace here prevents
+              // a false self-match when both ends of the veth pair share the same ifindex, which
+              // happens in fresh unshare'd namespaces where interface indices reset to 1.
+              if (otherNs.ino === nsState.ino) continue;
               const candidate = otherNs.addr?.find((i) => i.ifindex === iface.link_index && i.linkinfo?.info_kind === "veth");
               if (candidate) {
                 const candidatePeerIndex = candidate.link_index ?? (typeof candidate.link === "number" ? candidate.link : undefined);
