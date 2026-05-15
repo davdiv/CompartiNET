@@ -69,8 +69,8 @@ export const runCommand = async (args: CommandArg[]): Promise<Buffer> => {
         const tmpPath = join(tempFolder, `file${resolvedArgs.length}`);
         await writeFile(tmpPath, arg.content, { mode: 0o600 });
         resolvedArgs.push(tmpPath);
-      } else if (arg.type === "processPid") {
-        resolvedArgs.push(`${process.pid}`);
+      } else if (arg.type === "defaultNetns") {
+        resolvedArgs.push(`/proc/${process.pid}/ns/net`);
       }
     }
     return await exec(resolvedArgs);

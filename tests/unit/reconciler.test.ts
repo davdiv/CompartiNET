@@ -167,7 +167,7 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip -n ns1 link set dev eth0 name eth0 netns $$
+      "ip -n ns1 link set dev eth0 name eth0 netns /proc/$$/ns/net
       ip netns del ns1"
     `);
   });

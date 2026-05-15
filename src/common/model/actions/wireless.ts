@@ -1,4 +1,4 @@
-import { getNetnsPrefix } from "../commands";
+import { getNetnsPrefix, getNetnsTarget } from "../commands";
 import { InterfaceModelHardware, NetworkModel } from "../networkModel";
 import { checkNetnsExists } from "../utils";
 import { checkThenMoveInterface } from "./utils";
@@ -28,5 +28,5 @@ export const applyMoveWirelessPhy = (model: NetworkModel, { phy, oldNetns, newNe
 };
 
 export const commandForMoveWirelessPhy = ({ phy, oldNetns, newNetns }: MoveWirelessPhyAction) => {
-  return [...getNetnsPrefix(oldNetns), "iw", "phy", phy, "set", "netns", ...(newNetns ? ["name", newNetns] : [{ type: "processPid" } as const])];
+  return [...getNetnsPrefix(oldNetns), "iw", "phy", phy, "set", "netns", "name", getNetnsTarget(newNetns)];
 };

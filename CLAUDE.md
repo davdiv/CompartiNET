@@ -95,7 +95,7 @@ Note: `currentState` (system state collection) is currently also refreshed on a 
 The backend code (in `src/node/`) provides:
 
 - **State collection**: `collectState.ts` polls the system to build the current network model.
-- **Command execution**: `spawnUtils.ts` runs `iproute2` and `wg` commands. It supports two special `CommandArg` types beyond plain strings: `TempFileArg` creates a temporary file with `0o600` permissions to pass secrets (e.g., WireGuard keys) without exposing them in process lists; `ProcessPidArg` substitutes the current process PID, used by `getNetnsTarget` to reference the default namespace.
+- **Command execution**: `spawnUtils.ts` runs `iproute2` and `wg` commands. It supports a special `CommandArg` types beyond plain strings: `TempFileArg` creates a temporary file with `0o600` permissions to pass secrets (e.g., WireGuard keys) without exposing them in process lists and `DefaultNetnsArg` allows to add the path to the current network namespace (`/proc/${process.pid}/ns/net` which is different than `/proc/self/ns/net` when passed to a child process spawned in a different namespace)
 - **CLI entry points** in `src/node/cli/`:
   - `compartinet` -- main CLI
   - `compartinet-manager` -- systemd service
