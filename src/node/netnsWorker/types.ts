@@ -17,7 +17,12 @@ export interface RequestCreateUDPSocket {
   port: number;
 }
 
-export type NetnsWorkerRequest = RequestCreateTCPServer | RequestCreateUDPSocket;
+export interface RequestExec {
+  type: "exec";
+  args: string[];
+}
+
+export type NetnsWorkerRequest = RequestCreateTCPServer | RequestCreateUDPSocket | RequestExec;
 
 export type NetnsWorkerResponse<T> =
   | {

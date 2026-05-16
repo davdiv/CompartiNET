@@ -7,6 +7,7 @@ import { applyRuntimeMeta, recordActionMeta, type InterfaceRuntimeMetaMap } from
 import { reconcile } from "../common/reconcile";
 import { collectState, getNetnsIno } from "./collectState";
 import { createServicesManager, processFeatures, type Feature } from "./features";
+import { createNetnsWorkerPool } from "./netnsWorker/pool";
 import { runCommand } from "./spawnUtils";
 
 export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Feature[], []>) => {
@@ -49,10 +50,11 @@ export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Featu
     }
     if (actions.length > 0) {
       const namedNetns = { ...currentNamedNetns };
+      using pool = createNetnsWorkerPool();
       for (const action of actions) {
         const command = commandForAction(action);
         console.log(formatCommand(command));
-        await runCommand(command);
+        await runCommand(command, pool);
         if (action.type === "CreateNamespace") {
           namedNetns[action.netns] = await getNetnsIno(action.netns);
         }

@@ -177,7 +177,7 @@ export const createDhcpClientMachine = (config: DhcpClientServiceSpec, abortSign
   };
 
   const createSocket = async () => {
-    using worker = createNetnsWorker(config.netns);
+    using worker = await createNetnsWorker(config.netns);
     const socket = await worker.call<Socket>({
       type: "create-udp-socket",
       options: { type: "udp4", reuseAddr: true },

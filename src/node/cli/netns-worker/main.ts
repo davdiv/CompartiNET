@@ -1,11 +1,13 @@
 import { createServer } from "node:net";
 import { NetnsWorkerRequest, NetnsWorkerResponse, RequestId } from "../../netnsWorker/types";
 import { createSocket } from "node:dgram";
+import { exec } from "../../spawnUtils";
 
 if (process.connected) {
   const sendResponse = <T>(response: NetnsWorkerResponse<T> & RequestId, handler?: any) => {
     process.send!(response, handler);
   };
+  sendResponse({ requestId: 0, success: true, result: true });
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   process.on("message", async ({ requestId, ...params }: NetnsWorkerRequest & RequestId) => {
     try {
@@ -24,6 +26,10 @@ if (process.connected) {
           await new Promise((resolve, reject) => socket.on("listening", resolve).on("error", reject));
           sendResponse({ requestId, success: true, result: true }, socket);
           socket.close();
+          break;
+        }
+        case "exec": {
+          sendResponse({ requestId, success: true, result: await exec(params.args) });
           break;
         }
         default:

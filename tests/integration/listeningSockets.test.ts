@@ -15,7 +15,7 @@ describe("integration / listening sockets", () => {
     await runActionAndVerify({ type: "AddIpAddress", netns: "socket-test-ns", iface: "veth-cli", ip: { family: "ipv4", address: "10.99.0.2", prefixLength: 24 } });
 
     // Start a TCP listener on port 9999 inside the namespace
-    using worker = createNetnsWorker("socket-test-ns");
+    using worker = await createNetnsWorker("socket-test-ns");
     const server = await worker.call<Server>({ type: "create-tcp-server", host: "10.99.0.2", port: 9999 });
     try {
       const { state } = await collectState();
@@ -35,7 +35,7 @@ describe("integration / listening sockets", () => {
     await runActionAndVerify({ type: "AddIpAddress", netns: "zone-test-ns", iface: "veth-zone-cli", ip: { family: "ipv6", address: "fe80::1", prefixLength: 64 } });
 
     // Start a listener on the link-local address bound to %veth-zone-cli
-    using child = createNetnsWorker("zone-test-ns");
+    using child = await createNetnsWorker("zone-test-ns");
     const server = await child.call<Server>({ type: "create-tcp-server", host: "fe80::1%veth-zone-cli", port: 9999 });
     try {
       const { state } = await collectState();

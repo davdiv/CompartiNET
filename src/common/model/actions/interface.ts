@@ -1,4 +1,4 @@
-import { getIpNetnsPrefix, getNetnsTarget } from "../commands";
+import { Command, getNetnsTarget } from "../commands";
 import { NetworkModel } from "../networkModel";
 import { checkIfaceExists } from "../utils";
 import { checkThenMoveInterface, removeDeviceRoutes } from "./utils";
@@ -43,17 +43,23 @@ export const applySetInterfaceUp = (model: NetworkModel, { netns, iface: altname
   }
 };
 
-export const commandForMoveInterface = ({ oldNetns, oldIface, newNetns, newIface }: MoveInterfaceAction) => [
-  ...getIpNetnsPrefix(oldNetns),
-  "link",
-  "set",
-  "dev",
-  oldIface,
-  // always include  the name because the oldIface may be an altname
-  // and comparing an altname with the new name does not make sense
-  "name",
-  newIface,
-  ...(oldNetns !== newNetns ? ["netns", getNetnsTarget(newNetns)] : []),
-];
+export const commandForMoveInterface = ({ oldNetns, oldIface, newNetns, newIface }: MoveInterfaceAction): Command => ({
+  netns: oldNetns,
+  args: [
+    "ip",
+    "link",
+    "set",
+    "dev",
+    oldIface,
+    // always include  the name because the oldIface may be an altname
+    // and comparing an altname with the new name does not make sense
+    "name",
+    newIface,
+    ...(oldNetns !== newNetns ? ["netns", getNetnsTarget(newNetns)] : []),
+  ],
+});
 
-export const commandForSetInterfaceUp = ({ netns, iface, up }: SetInterfaceUpAction) => [...getIpNetnsPrefix(netns), "link", "set", "dev", iface, up ? "up" : "down"];
+export const commandForSetInterfaceUp = ({ netns, iface, up }: SetInterfaceUpAction): Command => ({
+  netns,
+  args: ["ip", "link", "set", "dev", iface, up ? "up" : "down"],
+});

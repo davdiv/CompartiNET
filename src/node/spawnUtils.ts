@@ -3,7 +3,9 @@ import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Readable } from "node:stream";
-import type { CommandArg } from "../common/model/commands";
+import type { Command, CommandArg } from "../common/model/commands";
+import { createNetnsWorker } from "./netnsWorker/create";
+import type { NetnsWorkerPool } from "./netnsWorker/pool";
 
 export const waitForProcess = (child: ChildProcess, stderrBuffer: Buffer) =>
   new Promise<void>((resolve, reject) => {
@@ -40,41 +42,25 @@ export const exec = async (args: string[], { stdIn }: { stdIn?: Buffer | string 
   return await stdout;
 };
 
-export const execOutJson = async (...args: Parameters<typeof exec>) => {
-  const output = (await exec(...args)).toString("utf8");
-  if (!output) {
-    return undefined;
-  }
-  try {
-    return JSON.parse(output);
-  } catch (cause) {
-    throw new Error(`Failed to parse JSON output from ${args[0].join(" ")}\nOutput: ${output}`, {
-      cause,
-    });
-  }
-};
-
-export const runCommand = async (args: CommandArg[]): Promise<Buffer> => {
+const resolveArgs = async (args: CommandArg[]): Promise<{ resolvedArgs: string[]; cleanup: () => Promise<void> }> => {
   let tempFolder: string | undefined;
-  try {
-    const resolvedArgs: string[] = [];
-    for (const arg of args) {
-      if (typeof arg === "string") {
-        resolvedArgs.push(arg);
-      } else if (arg.type === "tempFile") {
-        if (!tempFolder) {
-          tempFolder = await mkdtemp(join(tmpdir(), "cn-"));
-          await chmod(tempFolder, 0o600);
-        }
-        const tmpPath = join(tempFolder, `file${resolvedArgs.length}`);
-        await writeFile(tmpPath, arg.content, { mode: 0o600 });
-        resolvedArgs.push(tmpPath);
-      } else if (arg.type === "defaultNetns") {
-        resolvedArgs.push(`/proc/${process.pid}/ns/net`);
+  const resolvedArgs: string[] = [];
+  for (const arg of args) {
+    if (typeof arg === "string") {
+      resolvedArgs.push(arg);
+    } else if (arg.type === "tempFile") {
+      if (!tempFolder) {
+        tempFolder = await mkdtemp(join(tmpdir(), "cn-"));
+        await chmod(tempFolder, 0o600);
       }
+      const tmpPath = join(tempFolder, `file${resolvedArgs.length}`);
+      await writeFile(tmpPath, arg.content, { mode: 0o600 });
+      resolvedArgs.push(tmpPath);
+    } else if (arg.type === "defaultNetns") {
+      resolvedArgs.push(`/proc/${process.pid}/ns/net`);
     }
-    return await exec(resolvedArgs);
-  } finally {
+  }
+  const cleanup = async () => {
     if (tempFolder) {
       try {
         await rm(tempFolder, { recursive: true, force: true });
@@ -82,5 +68,24 @@ export const runCommand = async (args: CommandArg[]): Promise<Buffer> => {
         // ignore cleanup errors
       }
     }
+  };
+  return { resolvedArgs, cleanup };
+};
+
+export const runCommand = async ({ netns, args }: Command, pool?: NetnsWorkerPool): Promise<Buffer> => {
+  const { resolvedArgs, cleanup } = await resolveArgs(args);
+  try {
+    if (!netns) {
+      return await exec(resolvedArgs);
+    }
+    if (pool) {
+      const worker = await pool.getWorker(netns);
+      return await worker.call<Buffer>({ type: "exec", args: resolvedArgs });
+    }
+    using worker = await createNetnsWorker(netns);
+    await worker.setupMount();
+    return await worker.call<Buffer>({ type: "exec", args: resolvedArgs });
+  } finally {
+    await cleanup();
   }
 };

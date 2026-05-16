@@ -31,7 +31,7 @@ export const wakeOnLan = async (netns: string, macAddress: string, broadcastAddr
   const macBytes = parseMacAddress(macAddress);
   const packet = buildMagicPacket(macBytes);
 
-  using worker = createNetnsWorker(netns);
+  using worker = await createNetnsWorker(netns);
   const socket = await worker.call<Socket>({ type: "create-udp-socket", host: "0.0.0.0", port: 0, options: { type: "udp4" } });
   try {
     socket.setBroadcast(true);

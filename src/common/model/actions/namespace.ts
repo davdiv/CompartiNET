@@ -1,3 +1,4 @@
+import { Command } from "../commands";
 import { NamespaceModel, NetworkModel } from "../networkModel";
 import { checkNetnsExists } from "../utils";
 
@@ -60,6 +61,12 @@ export const applyDeleteNamespace = (model: NetworkModel, { netns }: DeleteNames
   delete model.netnsByIno[inode];
 };
 
-export const commandForCreateNamespace = ({ netns }: CreateNamespaceAction) => ["ip", "netns", "add", netns];
+export const commandForCreateNamespace = ({ netns }: CreateNamespaceAction): Command => ({
+  netns: "",
+  args: ["ip", "netns", "add", netns],
+});
 
-export const commandForDeleteNamespace = ({ netns }: DeleteNamespaceAction) => ["ip", "netns", "del", netns];
+export const commandForDeleteNamespace = ({ netns }: DeleteNamespaceAction): Command => ({
+  netns: "",
+  args: ["ip", "netns", "del", netns],
+});

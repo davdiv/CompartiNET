@@ -58,6 +58,6 @@ describe("commandForMoveWirelessPhy", () => {
       oldNetns: "ns1",
       newNetns: "ns2",
     });
-    expect(cmds).toEqual(["ip", "netns", "exec", "ns1", "iw", "phy", "phy0", "set", "netns", "name", "ns2"]);
+    expect(cmds).toEqual({ netns: "ns1", args: ["iw", "phy", "phy0", "set", "netns", "name", "ns2"] });
   });
 });

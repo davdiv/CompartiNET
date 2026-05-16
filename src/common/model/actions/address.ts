@@ -1,4 +1,4 @@
-import { getIpNetnsPrefix } from "../commands";
+import { Command } from "../commands";
 import { formatIpAddressModel } from "../ip";
 import { IpAddressModel, NetworkModel } from "../networkModel";
 import { checkIfaceExists } from "../utils";
@@ -34,14 +34,12 @@ export const applyRemoveIpAddress = (model: NetworkModel, { netns, iface, ip }: 
   ifaceModel.addresses.splice(ipIndex, 1);
 };
 
-export const commandForAddIpAddress = ({ netns, iface, ip }: AddIpAddressAction) => [
-  ...getIpNetnsPrefix(netns),
-  "addr",
-  "add",
-  formatIpAddressModel(ip),
-  "dev",
-  iface,
-  ...(ip.family === "ipv6" ? ["nodad"] : []),
-];
+export const commandForAddIpAddress = ({ netns, iface, ip }: AddIpAddressAction): Command => ({
+  netns,
+  args: ["ip", "addr", "add", formatIpAddressModel(ip), "dev", iface, ...(ip.family === "ipv6" ? ["nodad"] : [])],
+});
 
-export const commandForRemoveIpAddress = ({ netns, iface, ip }: RemoveIpAddressAction) => [...getIpNetnsPrefix(netns), "addr", "del", formatIpAddressModel(ip), "dev", iface];
+export const commandForRemoveIpAddress = ({ netns, iface, ip }: RemoveIpAddressAction): Command => ({
+  netns,
+  args: ["ip", "addr", "del", formatIpAddressModel(ip), "dev", iface],
+});

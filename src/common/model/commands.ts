@@ -8,24 +8,27 @@ export interface DefaultNetnsArg {
 }
 
 export type CommandArg = string | TempFileArg | DefaultNetnsArg;
-export type Command = CommandArg[];
 
-export const getNetnsPrefix = (netns: string): string[] => (netns ? ["ip", "netns", "exec", netns] : []);
-export const getIpNetnsPrefix = (netns: string) => (netns ? ["ip", "-n", netns] : ["ip"]);
-export const getBridgeNetnsPrefix = (netns: string) => (netns ? ["bridge", "-n", netns] : ["bridge"]);
+export interface Command {
+  netns: string;
+  args: CommandArg[];
+}
+
 export const getNetnsTarget = (netns: string): CommandArg => netns || { type: "defaultNetns" };
 
+const formatArg = (a: CommandArg): string => {
+  if (typeof a === "string") return a;
+  if (a.type === "defaultNetns") return "/proc/$$/ns/net";
+  const content = a.content.replace(/'/g, "'\\''");
+  return `<(printf '%s' '${content}')`;
+};
+
 /**
- * Formats a command array into a human-readable string for testing.
+ * Formats a command into a human-readable string for testing.
  * TempFileArg objects are rendered as bash process substitution syntax.
+ * A non-default netns is rendered as a leading `[NS]` token.
  */
-export const formatCommand = (cmd: CommandArg[]): string =>
-  cmd
-    .map((a) => {
-      if (typeof a === "string") return a;
-      if (a.type === "defaultNetns") return "/proc/$$/ns/net";
-      // Escape single quotes in content for shell safety
-      const content = a.content.replace(/'/g, "'\\''");
-      return `<(printf '%s' '${content}')`;
-    })
-    .join(" ");
+export const formatCommand = ({ netns, args }: Command): string => {
+  const formattedArgs = args.map(formatArg).join(" ");
+  return netns ? `[${netns}] ${formattedArgs}` : formattedArgs;
+};
