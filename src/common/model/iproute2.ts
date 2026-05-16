@@ -64,18 +64,18 @@ export interface IPRoute2Route {
   priority?: number;
 }
 
-export interface IPRoute2NetnsId {
-  nsid: number;
-  name?: string;
+export interface LsnsNetNamespace {
+  ns: number;
+  netnsid: string;
 }
 
 export interface IPRoute2NetnsState {
   ino: number;
-  name: string[];
+  names: string[];
   addr: IPRoute2Interface[];
   route: IPRoute2Route[];
   wireguard?: Record<string, string>;
-  netnsIds?: IPRoute2NetnsId[];
+  lsns?: LsnsNetNamespace[];
   bridgeVlans?: IPRoute2BridgeVlan[];
   iwDev?: string;
   listeningSockets?: string;

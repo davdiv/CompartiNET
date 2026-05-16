@@ -12,7 +12,7 @@ export type InterfaceRuntimeMetaMap = Record<number, Record<string, InterfaceRun
 /** Enriches a collected NetworkModel with runtime metadata and prunes stale entries. */
 export function applyRuntimeMeta(model: NetworkModel, meta: InterfaceRuntimeMetaMap): void {
   for (const inodeStr of Object.keys(meta)) {
-    const inode = Number(inodeStr);
+    const inode = +inodeStr;
     const nsModel = model.netnsByIno[inode];
     if (!nsModel) {
       delete meta[inode];

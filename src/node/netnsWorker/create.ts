@@ -6,7 +6,6 @@ import { NetnsWorkerRequest, NetnsWorkerResponse, RequestId } from "./types";
 export interface NetnsWorker extends Disposable {
   call<T>(request: NetnsWorkerRequest): Promise<T>;
   close: () => void;
-  setupMount: () => Promise<void>;
 }
 
 export const createNetnsWorker = async (netns: string): Promise<NetnsWorker> => {
@@ -74,18 +73,21 @@ export const createNetnsWorker = async (netns: string): Promise<NetnsWorker> => 
       requests.set(requestId, { resolve, reject });
     });
   };
-  let setupMountPromise: Promise<void> | undefined;
-  const setupMount = () => {
-    if (!setupMountPromise) {
-      setupMountPromise = call({ type: "exec", args: ["mount", "-t", "sysfs", "/sys", "/sys"] });
-    }
-    return setupMountPromise;
-  };
   await initPromise;
   return {
-    setupMount,
     call,
     close,
     [Symbol.dispose]: close,
   };
+};
+
+export const setupWorkerWithSysMount = async (netns: string) => {
+  const worker = await createNetnsWorker(netns);
+  try {
+    await worker.call({ type: "exec", args: ["mount", "-t", "sysfs", "/sys", "/sys"] });
+  } catch (error) {
+    worker.close();
+    throw error;
+  }
+  return worker;
 };

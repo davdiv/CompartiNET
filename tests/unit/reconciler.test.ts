@@ -21,7 +21,7 @@ describe("reconcile", () => {
     });
 
     const commands = getCommands(actual, desired);
-    expect(commands).toMatchInlineSnapshot(`"ip netns add test-ns"`);
+    expect(commands).toMatchInlineSnapshot(`"manage-netns create test-ns"`);
   });
 
   it("should generate command to remove a namespace", () => {
@@ -31,7 +31,7 @@ describe("reconcile", () => {
     const desired = createTestModel({});
 
     const commands = getCommands(actual, desired);
-    expect(commands).toMatchInlineSnapshot(`"ip netns del test-ns"`);
+    expect(commands).toMatchInlineSnapshot(`"manage-netns delete test-ns"`);
   });
 
   it("should not generate command to add the default namespace", () => {
@@ -52,6 +52,21 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`""`);
+  });
+
+  it("should generate commands for path-based namespaces", () => {
+    const actual = createTestModel({
+      "/run/custom/old": createNamespace(),
+    });
+    const desired = createTestModel({
+      "/run/custom/new": createNamespace(),
+    });
+
+    const commands = getCommands(actual, desired);
+    expect(commands).toMatchInlineSnapshot(`
+      "manage-netns create /run/custom/new
+      manage-netns delete /run/custom/old"
+    `);
   });
 
   it("should generate command to add a missing IP address", () => {
@@ -122,11 +137,11 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip netns add ns2
+      "manage-netns create ns2
       [ns1] ip link set dev eth0 down
       [ns1] ip link set dev eth0 name wan0 netns ns2
       [ns2] ip link set dev wan0 up
-      ip netns del ns1"
+      manage-netns delete ns1"
     `);
   });
 
@@ -168,7 +183,7 @@ describe("reconcile", () => {
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
       "[ns1] ip link set dev eth0 name eth0 netns /proc/$$/ns/net
-      ip netns del ns1"
+      manage-netns delete ns1"
     `);
   });
 
@@ -208,11 +223,11 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip netns add ns2
+      "manage-netns create ns2
       [ns1] ip link set dev eth0 down
       [ns1] ip link set dev eth0 name eth0 netns ns2
       [ns2] ip link set dev eth0 up
-      ip netns del ns1"
+      manage-netns delete ns1"
     `);
   });
 
@@ -487,9 +502,9 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip netns add ns2
+      "manage-netns create ns2
       [ns1] iw phy phy0 set netns name ns2
-      ip netns del ns1"
+      manage-netns delete ns1"
     `);
   });
 
@@ -533,10 +548,10 @@ describe("reconcile", () => {
 
     const commands = getCommands(actual, desired);
     expect(commands).toMatchInlineSnapshot(`
-      "ip netns add ns2
+      "manage-netns create ns2
       [ns1] iw phy phy0 set netns name ns2
       [ns2] ip link set dev wlan0 name wifi0
-      ip netns del ns1"
+      manage-netns delete ns1"
     `);
   });
 

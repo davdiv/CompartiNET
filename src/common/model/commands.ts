@@ -7,7 +7,11 @@ export interface DefaultNetnsArg {
   type: "defaultNetns";
 }
 
-export type CommandArg = string | TempFileArg | DefaultNetnsArg;
+export interface NetnsHelperArg {
+  type: "netnsHelper";
+}
+
+export type CommandArg = string | TempFileArg | DefaultNetnsArg | NetnsHelperArg;
 
 export interface Command {
   netns: string;
@@ -19,6 +23,7 @@ export const getNetnsTarget = (netns: string): CommandArg => netns || { type: "d
 const formatArg = (a: CommandArg): string => {
   if (typeof a === "string") return a;
   if (a.type === "defaultNetns") return "/proc/$$/ns/net";
+  if (a.type === "netnsHelper") return "manage-netns";
   const content = a.content.replace(/'/g, "'\\''");
   return `<(printf '%s' '${content}')`;
 };

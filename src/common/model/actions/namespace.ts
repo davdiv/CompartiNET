@@ -63,10 +63,10 @@ export const applyDeleteNamespace = (model: NetworkModel, { netns }: DeleteNames
 
 export const commandForCreateNamespace = ({ netns }: CreateNamespaceAction): Command => ({
   netns: "",
-  args: ["ip", "netns", "add", netns],
+  args: [{ type: "netnsHelper" }, "create", netns],
 });
 
 export const commandForDeleteNamespace = ({ netns }: DeleteNamespaceAction): Command => ({
   netns: "",
-  args: ["ip", "netns", "del", netns],
+  args: [{ type: "netnsHelper" }, "delete", netns],
 });

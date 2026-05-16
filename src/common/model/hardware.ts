@@ -4,7 +4,7 @@ import { InterfaceLink, NetworkModel } from "./networkModel";
 export const getHardwareInterfaceMap = (model: NetworkModel): Record<string, InterfaceLink[]> => {
   const map: Record<string, InterfaceLink[]> = {};
   for (const inodeStr of Object.keys(model.netnsByIno)) {
-    const inode = Number(inodeStr);
+    const inode = +inodeStr;
     const netnsModel = model.netnsByIno[inode];
     for (const [iface, ifaceModel] of Object.entries(netnsModel.interfaces)) {
       if (ifaceModel.type === "hardware" && (ifaceModel.hardwareBus || ifaceModel.hardwareDevice)) {

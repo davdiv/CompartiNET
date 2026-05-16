@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Readable } from "node:stream";
 import type { Command, CommandArg } from "../common/model/commands";
-import { createNetnsWorker } from "./netnsWorker/create";
+import { setupWorkerWithSysMount } from "./netnsWorker/create";
 import type { NetnsWorkerPool } from "./netnsWorker/pool";
 
 export const waitForProcess = (child: ChildProcess, stderrBuffer: Buffer) =>
@@ -58,6 +58,8 @@ const resolveArgs = async (args: CommandArg[]): Promise<{ resolvedArgs: string[]
       resolvedArgs.push(tmpPath);
     } else if (arg.type === "defaultNetns") {
       resolvedArgs.push(`/proc/${process.pid}/ns/net`);
+    } else if (arg.type === "netnsHelper") {
+      resolvedArgs.push(process.execPath, ...process.execArgv, join(import.meta.dirname, "manage-netns"));
     }
   }
   const cleanup = async () => {
@@ -82,8 +84,7 @@ export const runCommand = async ({ netns, args }: Command, pool?: NetnsWorkerPoo
       const worker = await pool.getWorker(netns);
       return await worker.call<Buffer>({ type: "exec", args: resolvedArgs });
     }
-    using worker = await createNetnsWorker(netns);
-    await worker.setupMount();
+    using worker = await setupWorkerWithSysMount(netns);
     return await worker.call<Buffer>({ type: "exec", args: resolvedArgs });
   } finally {
     await cleanup();

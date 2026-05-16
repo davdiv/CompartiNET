@@ -5,19 +5,24 @@ import { commandForAction } from "../common/model/actions";
 import { formatCommand } from "../common/model/commands";
 import { applyRuntimeMeta, recordActionMeta, type InterfaceRuntimeMetaMap } from "../common/model/interfaceMeta";
 import { reconcile } from "../common/reconcile";
-import { collectState, getNetnsIno } from "./collectState";
+import { collectState, getNetnsIno, type CollectStateOptions } from "./collectState";
 import { createServicesManager, processFeatures, type Feature } from "./features";
 import { createNetnsWorkerPool } from "./netnsWorker/pool";
 import { runCommand } from "./spawnUtils";
 
-export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Feature[], []>) => {
+export interface ReconcilerOptions {
+  netnsDirs?: string[];
+}
+
+export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Feature[], []>, options: ReconcilerOptions = {}) => {
+  const collectStateOptions: CollectStateOptions = { netnsDirs: options.netnsDirs };
   const refreshState = notifier();
   const runtimeMeta: InterfaceRuntimeMetaMap = {};
   const currentState = reactive(
     async () => {
       refreshState.consume();
       getContext(MarkReloadable)();
-      const { state: model, errors } = await collectState();
+      const { state: model, errors } = await collectState(collectStateOptions);
       if (errors.length > 0) {
         console.error("State collection errors:", errors);
       }

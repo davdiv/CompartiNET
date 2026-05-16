@@ -33,7 +33,11 @@ When you are unsure about the behavior or output format of system commands (`ip`
 
 ### Namespace Execution
 
-Always use `getNetnsPrefix` (`src/common/model/commands.ts`) when constructing commands for a specific network namespace. For a non-empty namespace name it prepends `ip netns exec <netns>`, which properly mounts `/sys` in the namespace; for the default namespace (empty string `""`) it returns an empty array (no prefix).
+Commands are modeled as `{ netns, args }` (`src/common/model/commands.ts`). `runCommand` in `src/node/spawnUtils.ts` dispatches them: empty `netns` → direct spawn; non-empty → routed through a `netns-worker` child started with `nsenter --net=<path>` plus `unshare -m`, so `/sys` can be remounted per-namespace.
+
+A `netns` value starting with `/` is treated as a full path (via `getNetnsPath` in `src/node/netnsPath.ts`); otherwise it resolves under `/var/run/netns/`. State collection picks up both forms via the `netnsDirs` option of `collectState`.
+
+Create and delete of a namespace go through the `manage-netns` helper (`src/node/cli/manage-netns/`), which `mkdir -p`s the parent directory, then for create runs `unshare --net=<path> -- /bin/true`, and for delete runs `umount <path>` followed by `unlink <path>`. The helper is used uniformly for both simple names and paths — `ip netns add/del` is no longer used.
 
 ### Plain Object Map Safety
 

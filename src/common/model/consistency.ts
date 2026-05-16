@@ -122,7 +122,7 @@ export const checkModelConsistency = (model: NetworkModel) => {
   }
 
   for (const inoStr of Object.keys(model.netnsByIno)) {
-    const ino = Number(inoStr);
+    const ino = +inoStr;
     const ns = model.netnsByIno[ino];
     for (const name of ns.names) {
       if (!Object.hasOwn(model.namedNetns, name)) {

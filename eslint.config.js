@@ -5,7 +5,7 @@ import tseslint from "typescript-eslint";
 export default defineConfig(
   eslint.configs.recommended,
   tseslint.configs.recommendedTypeChecked,
-  { ignores: ["dist", "coverage", "src/node/netnsWorker/netns-worker.js"] },
+  { ignores: ["dist", "coverage", "src/node/netnsWorker/netns-worker.js", "src/node/manage-netns.js"] },
   {
     languageOptions: {
       parserOptions: {

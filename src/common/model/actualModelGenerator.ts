@@ -1,31 +1,38 @@
 import { addInterface } from "./actions/utils";
 import { parseIpAddressModel } from "./ip";
-import { IPRoute2BridgeVlan, IPRoute2Interface, IPRoute2NetnsId, IPRoute2NetnsState, IPRoute2Route } from "./iproute2";
-import { InterfaceModelBase, NamespaceModel, NetworkModel, RealInterfaceModel } from "./networkModel";
+import { IPRoute2BridgeVlan, IPRoute2Interface, IPRoute2NetnsState, IPRoute2Route } from "./iproute2";
+import { InterfaceModelBase, NamespaceModel, NetnsIno, NetworkModel, RealInterfaceModel } from "./networkModel";
 import { parseIwDev } from "./parseIwDev";
 import { parseSsOutput } from "./parseSsOutput";
 import { parseWgConfig } from "./wg/parser";
 
 interface LookupMaps {
-  nameToIno: Record<string, number>;
-  nsidToName: Record<number, Record<number, string>>;
-  ifindexToName: Record<number, Record<number, string>>;
+  nsidToIno: Record<NetnsIno, Record<number, NetnsIno>>;
+  ifindexToName: Record<NetnsIno, Record<number, string>>;
 }
 
+const parseNsid = (netnsid: string): number | null => {
+  const n = +netnsid;
+  return Number.isInteger(n) && n >= 0 ? n : null;
+};
+
 const buildLookupMaps = (stateByNetns: IPRoute2NetnsState[]): LookupMaps => {
-  const nameToIno: Record<string, number> = {};
-  const nsidToName: Record<number, Record<number, string>> = {};
-  const ifindexToName: Record<number, Record<number, string>> = {};
+  const nsidToIno: Record<NetnsIno, Record<number, NetnsIno>> = {};
+  const ifindexToName: Record<NetnsIno, Record<number, string>> = {};
 
   for (const ns of stateByNetns) {
-    for (const name of ns.name) {
-      nameToIno[name] = ns.ino;
-    }
     ifindexToName[ns.ino] = Object.fromEntries((ns.addr ?? []).map(({ ifindex, ifname }) => [ifindex, ifname]));
-    nsidToName[ns.ino] = Object.fromEntries((ns.netnsIds ?? []).filter((entry): entry is IPRoute2NetnsId & { name: string } => !!entry.name).map(({ nsid, name }) => [nsid, name]));
+    const nsidMap: Record<number, NetnsIno> = {};
+    for (const row of ns.lsns ?? []) {
+      const nsid = parseNsid(row.netnsid);
+      if (nsid != null) {
+        nsidMap[nsid] = row.ns;
+      }
+    }
+    nsidToIno[ns.ino] = nsidMap;
   }
 
-  return { nameToIno, nsidToName, ifindexToName };
+  return { nsidToIno, ifindexToName };
 };
 
 interface BridgeVlanInfo {
@@ -54,23 +61,16 @@ const buildBridgeVlanMap = (bridgeVlans: IPRoute2BridgeVlan[] | undefined): Reco
 
 const resolveVethPeer = (iface: IPRoute2Interface, nsState: IPRoute2NetnsState, stateByNetns: IPRoute2NetnsState[], maps: LookupMaps): { peerNetns?: number; peerIface?: string } => {
   if (typeof iface.link === "string") {
-    return { peerIface: iface.link, peerNetns: maps.nameToIno[nsState.name[0]] };
+    return { peerIface: iface.link, peerNetns: nsState.ino };
   }
 
   if (typeof iface.link_index === "number") {
     if (typeof iface.link_netnsid === "number") {
-      const nsMap = maps.nsidToName[nsState.ino];
-      if (nsMap) {
-        const mappedName = nsMap[iface.link_netnsid];
-        if (mappedName) {
-          const peerNetns = maps.nameToIno[mappedName];
-          const ifMap = maps.ifindexToName[peerNetns];
-          if (ifMap) {
-            const peerIface = ifMap[iface.link_index];
-            if (peerIface) {
-              return { peerNetns, peerIface };
-            }
-          }
+      const peerNetns = maps.nsidToIno[nsState.ino]?.[iface.link_netnsid];
+      if (peerNetns != null) {
+        const peerIface = maps.ifindexToName[peerNetns]?.[iface.link_index];
+        if (peerIface) {
+          return { peerNetns, peerIface };
         }
       }
     }
@@ -82,7 +82,7 @@ const resolveVethPeer = (iface: IPRoute2Interface, nsState: IPRoute2NetnsState, 
       if (candidate) {
         const candidatePeerIndex = candidate.link_index ?? (typeof candidate.link === "number" ? candidate.link : undefined);
         if (candidatePeerIndex === iface.ifindex) {
-          return { peerNetns: maps.nameToIno[otherNs.name[0]], peerIface: candidate.ifname };
+          return { peerNetns: otherNs.ino, peerIface: candidate.ifname };
         }
       }
     }
@@ -218,13 +218,13 @@ export function generateActualNetworkModel(stateByNetns: IPRoute2NetnsState[]): 
     const iwDev = parseIwDev(nsState.iwDev);
 
     const netnsModel: NamespaceModel = {
-      names: [...nsState.name],
+      names: [...nsState.names],
       interfaces: {},
       routes: buildRouteModels(nsState.route ?? []),
       listeningSockets: nsState.listeningSockets ? parseSsOutput(nsState.listeningSockets) : [],
     };
 
-    for (const name of nsState.name) {
+    for (const name of nsState.names) {
       model.namedNetns[name] = nsState.ino;
     }
     model.netnsByIno[nsState.ino] = netnsModel;

@@ -7,7 +7,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345677,
-        name: [""],
+        names: [""],
         addr: [
           {
             ifindex: 2,
@@ -58,7 +58,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345677,
-        name: [""],
+        names: [""],
         addr: [
           {
             ifindex: 3,
@@ -104,7 +104,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345677,
-        name: [""],
+        names: [""],
         addr: [
           {
             ifindex: 3,
@@ -181,7 +181,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345677,
-        name: ["ns1"],
+        names: ["ns1"],
         addr: [
           {
             ifindex: 4,
@@ -220,7 +220,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345677,
-        name: ["ns1"],
+        names: ["ns1"],
         addr: [
           {
             ifindex: 3,
@@ -238,11 +238,14 @@ describe("generateActualNetworkModel", () => {
           },
         ],
         route: [],
-        netnsIds: [{ nsid: 0, name: "ns2" }],
+        lsns: [
+          { ns: 4012345677, netnsid: "unassigned" },
+          { ns: 4012345678, netnsid: "0" },
+        ],
       },
       {
         ino: 4012345678,
-        name: ["ns2"],
+        names: ["ns2"],
         addr: [
           {
             ifindex: 2,
@@ -260,7 +263,10 @@ describe("generateActualNetworkModel", () => {
           },
         ],
         route: [],
-        netnsIds: [{ nsid: 0, name: "ns1" }],
+        lsns: [
+          { ns: 4012345677, netnsid: "0" },
+          { ns: 4012345678, netnsid: "unassigned" },
+        ],
       },
     ];
 
@@ -291,11 +297,80 @@ describe("generateActualNetworkModel", () => {
     `);
   });
 
+  it("resolves a veth peer in an unnamed namespace via lsns nsid", () => {
+    const state: IPRoute2NetnsState[] = [
+      {
+        ino: 4012345677,
+        names: ["ns1"],
+        addr: [
+          {
+            ifindex: 3,
+            ifname: "veth0",
+            flags: ["BROADCAST", "MULTICAST"],
+            mtu: 1500,
+            operstate: "DOWN",
+            link_type: "ether",
+            address: "9a:d3:01:dc:5b:5a",
+            broadcast: "ff:ff:ff:ff:ff:ff",
+            link_index: 2,
+            link_netnsid: 0,
+            linkinfo: { info_kind: "veth" },
+            addr_info: [],
+          },
+        ],
+        route: [],
+        lsns: [
+          { ns: 4012345677, netnsid: "unassigned" },
+          { ns: 4012345999, netnsid: "0" },
+        ],
+      },
+      {
+        ino: 4012345999,
+        names: [],
+        addr: [
+          {
+            ifindex: 2,
+            ifname: "veth-x",
+            flags: ["BROADCAST", "MULTICAST"],
+            mtu: 1500,
+            operstate: "DOWN",
+            link_type: "ether",
+            address: "9e:4f:ec:6c:18:e2",
+            broadcast: "ff:ff:ff:ff:ff:ff",
+            link_index: 3,
+            link_netnsid: 0,
+            linkinfo: { info_kind: "veth" },
+            addr_info: [],
+          },
+        ],
+        route: [],
+        lsns: [
+          { ns: 4012345677, netnsid: "0" },
+          { ns: 4012345999, netnsid: "unassigned" },
+        ],
+      },
+    ];
+
+    const model = generateActualNetworkModel(state);
+    expect(model.namedNetns).toEqual({ ns1: 4012345677 });
+    expect(model.netnsByIno[4012345999].names).toEqual([]);
+    expect(model.netnsByIno[model.namedNetns["ns1"]].interfaces["veth0"]).toMatchObject({
+      type: "veth",
+      peerIface: "veth-x",
+      peerNetns: 4012345999,
+    });
+    expect(model.netnsByIno[4012345999].interfaces["veth-x"]).toMatchObject({
+      type: "veth",
+      peerIface: "veth0",
+      peerNetns: 4012345677,
+    });
+  });
+
   it("parses a wireguard interface", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345678,
-        name: [""],
+        names: [""],
         addr: [
           {
             ifindex: 5,
@@ -352,7 +427,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345678,
-        name: [""],
+        names: [""],
         addr: [
           {
             ifindex: 2,
@@ -392,7 +467,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345678,
-        name: [""],
+        names: [""],
         addr: [
           {
             ifindex: 4,
@@ -435,7 +510,7 @@ describe("generateActualNetworkModel", () => {
   it("parses routes and skips kernel routes", () => {
     const state: IPRoute2NetnsState[] = [
       {
-        name: [""],
+        names: [""],
         ino: 4012345678,
         addr: [],
         route: [
@@ -479,7 +554,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345677,
-        name: [""],
+        names: [""],
         addr: [
           {
             ifindex: 1,
@@ -497,7 +572,7 @@ describe("generateActualNetworkModel", () => {
       },
       {
         ino: 4012345678,
-        name: ["test-ns"],
+        names: ["test-ns"],
         addr: [
           {
             ifindex: 1,
@@ -523,7 +598,7 @@ describe("generateActualNetworkModel", () => {
     const state: IPRoute2NetnsState[] = [
       {
         ino: 4012345678,
-        name: [""],
+        names: [""],
         addr: [
           {
             ifindex: 2,

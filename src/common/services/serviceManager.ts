@@ -47,7 +47,7 @@ export const createServiceManagerFactory = <ServiceSpec extends BaseServiceSpec>
     const applySocketMeta = (model: NetworkModel) => {
       socketMeta = buildSocketMeta(model);
       for (const inodeStr of Object.keys(socketMeta)) {
-        const inode = Number(inodeStr);
+        const inode = +inodeStr;
         const ns = model.netnsByIno[inode];
         if (!ns) continue;
         const svcMap = socketMeta[inode];
