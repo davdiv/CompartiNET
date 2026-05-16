@@ -12,9 +12,21 @@ export interface NetnsWorker extends Disposable {
 export const createNetnsWorker = async (netns: string): Promise<NetnsWorker> => {
   const args = ["nsenter", `--net=${getNetnsPath(netns)}`, "unshare", "-m", process.execPath, ...process.execArgv, join(import.meta.dirname, "netns-worker")];
   const child = spawn(args[0], args.slice(1), {
-    stdio: ["inherit", "inherit", "inherit", "ipc"],
+    stdio: ["inherit", "pipe", "pipe", "ipc"],
     serialization: "advanced",
   });
+  const stdoutChunks: Buffer[] = [];
+  const stderrChunks: Buffer[] = [];
+  child.stdout!.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+  child.stderr!.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+  const collectedOutput = () => {
+    const parts: string[] = [];
+    const stdout = Buffer.concat(stdoutChunks).toString("utf-8").trim();
+    const stderr = Buffer.concat(stderrChunks).toString("utf-8").trim();
+    if (stdout) parts.push(`Stdout: ${stdout}`);
+    if (stderr) parts.push(`Stderr: ${stderr}`);
+    return parts.length > 0 ? `\n${parts.join("\n")}` : "";
+  };
   let curId = 0;
   const requests = new Map<number, { resolve: (r: any) => void; reject: (r: any) => void }>();
   const initPromise = new Promise((resolve, reject) => requests.set(0, { resolve, reject }));
@@ -24,8 +36,11 @@ export const createNetnsWorker = async (netns: string): Promise<NetnsWorker> => 
     }
     requests.clear();
   };
+  child.on("error", (error) => {
+    rejectAllRequests(new Error(`Child process error: ${error.message}${collectedOutput()}`));
+  });
   child.on("disconnect", () => {
-    rejectAllRequests(new Error("Child process disconnected"));
+    rejectAllRequests(new Error(`Child process disconnected${collectedOutput()}`));
   });
   child.on("message", ({ requestId, ...response }: RequestId & NetnsWorkerResponse<any>, handler) => {
     const promise = requests.get(requestId);
