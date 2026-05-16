@@ -51,10 +51,10 @@ export const normalizeModel = (model: NetworkModel): NetworkModel => {
             if (a.address !== b.address) return a.address.localeCompare(b.address);
             return a.prefixLength - b.prefixLength;
           });
-        if ("peerNetns" in rest) {
+        if ("peerNetns" in rest && rest.peerNetns != null) {
           rest.peerNetns = remapInode(rest.peerNetns);
         }
-        if ("birthNetns" in rest && rest.birthNetns !== undefined) {
+        if ("birthNetns" in rest && rest.birthNetns != null) {
           rest.birthNetns = remapInode(rest.birthNetns);
         }
       }
@@ -71,7 +71,8 @@ export const normalizeModel = (model: NetworkModel): NetworkModel => {
 };
 
 export const checkReproducibleFromScratch = async (model: NetworkModel) => {
-  const config = modelToConfig(model);
+  const { config, errors } = modelToConfig(model);
+  expect(errors).toEqual([]);
   await validateConfig(config);
   const newModel = createDesiredModelFromBasicFeatures(config);
   expect(normalizeModel(model)).toEqual(normalizeModel(newModel));

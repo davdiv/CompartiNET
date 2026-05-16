@@ -16,11 +16,16 @@ export const createInterfaces = (ctx: ReconcileContext) => {
         case "bridge":
           ctx.apply({ type: "CreateBridge", netns, iface, stp: desiredIface.stp, vlanFiltering: desiredIface.vlanFiltering });
           break;
-        case "veth":
+        case "veth": {
+          if (desiredIface.peerNetns == null || desiredIface.peerIface == null) {
+            ctx.addError(`Veth ${iface} in namespace ${netns} has unknown peer, skipping creation`);
+            break;
+          }
           ctx.apply({ type: "CreateVeth", netns, iface, peerNetns: requireNetnsName(ctx.desiredModel, desiredIface.peerNetns), peerIface: desiredIface.peerIface });
           break;
+        }
         case "wireguard": {
-          const birthNetnsName = desiredIface.birthNetns !== undefined ? requireNetnsName(ctx.desiredModel, desiredIface.birthNetns) : netns;
+          const birthNetnsName = desiredIface.birthNetns != null ? requireNetnsName(ctx.desiredModel, desiredIface.birthNetns) : netns;
           if (birthNetnsName !== netns) {
             const birthIface = ctx.findUnusedIfaceName([birthNetnsName], [iface]);
             ctx.apply({ type: "CreateWireguard", netns: birthNetnsName, iface: birthIface });

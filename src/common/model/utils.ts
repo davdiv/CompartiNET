@@ -11,7 +11,7 @@ export const requireNetnsName = (model: NetworkModel, id: NetnsIno): string => g
 
 export const getNetns = (model: NetworkModel, name: string): NamespaceModel | undefined => {
   const inode = model.namedNetns[name];
-  if (inode === undefined) return undefined;
+  if (inode == null) return undefined;
   return Object.hasOwn(model.netnsByIno, inode) ? model.netnsByIno[inode] : undefined;
 };
 

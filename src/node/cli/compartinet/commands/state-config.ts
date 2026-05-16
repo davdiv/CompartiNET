@@ -12,15 +12,19 @@ export default async (args: string[]) => {
   });
 
   try {
-    const model = await collectState();
-    // TODO: validate model ?
-    const actions = modelToConfig(model);
-    // TODO: validate actions ?
+    const { state, errors } = await collectState();
+    if (errors.length > 0) {
+      console.error("State collection errors:", errors);
+    }
+    const { config, errors: configErrors } = modelToConfig(state);
+    if (configErrors.length > 0) {
+      console.error("Reconciliation errors:", configErrors);
+    }
 
     if (values.format === "yaml") {
-      console.log(yamlStringify(actions));
+      console.log(yamlStringify(config));
     } else {
-      console.log(JSON.stringify(actions, null, 2));
+      console.log(JSON.stringify(config, null, 2));
     }
   } catch (error) {
     console.error("Collection failed:", error);

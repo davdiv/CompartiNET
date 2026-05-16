@@ -17,7 +17,7 @@ export interface DeleteVethAction {
   iface: string;
 }
 
-export const newVeth = (peerNetns: NetnsIno, peerIface: string): InterfaceModelVeth => ({
+export const newVeth = (peerNetns?: NetnsIno, peerIface?: string): InterfaceModelVeth => ({
   type: "veth",
   up: false,
   addresses: [],
@@ -43,9 +43,11 @@ export const applyDeleteVeth = (model: NetworkModel, { netns, iface }: DeleteVet
   if (ifaceModel.type !== "veth") {
     throw new Error(`Interface ${iface} in namespace ${netns} is not a veth`);
   }
-  // Also remove the peer
-  const peerName = requireNetnsName(model, ifaceModel.peerNetns);
-  removeInterface(model, peerName, ifaceModel.peerIface);
+  // Also remove the peer if known
+  if (ifaceModel.peerNetns != null && ifaceModel.peerIface != null) {
+    const peerName = requireNetnsName(model, ifaceModel.peerNetns);
+    removeInterface(model, peerName, ifaceModel.peerIface);
+  }
   removeInterface(model, netns, iface);
 };
 

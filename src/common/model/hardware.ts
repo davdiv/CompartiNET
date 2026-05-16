@@ -28,7 +28,7 @@ export const getHardwareMatchActions = (model: NetworkModel): MatchHardwareActio
   const res: MatchHardwareAction[] = [];
   for (const netnsModel of Object.values(model.netnsByIno)) {
     const name = netnsModel.names[0];
-    if (name === undefined) continue;
+    if (name == null) continue;
     for (const [iface, ifaceModel] of Object.entries(netnsModel.interfaces)) {
       if (ifaceModel.type === "hardware") {
         res.push({

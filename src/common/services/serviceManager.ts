@@ -36,7 +36,7 @@ export const createServiceManagerFactory = <ServiceSpec extends BaseServiceSpec>
         if (spec.serviceType === "DhcpClient") {
           const ds = spec as any;
           const inode = model.namedNetns[ds.netns];
-          if (inode !== undefined) {
+          if (inode != null) {
             (meta[inode] ??= {})["udp4:0.0.0.0:68"] = ds.serviceKey;
           }
         }

@@ -69,7 +69,7 @@ export const checkThenMoveInterface = (model: NetworkModel, oldNetns: string, ne
       }
     }
 
-    if (ifaceModel.type === "veth") {
+    if (ifaceModel.type === "veth" && ifaceModel.peerNetns != null && ifaceModel.peerIface != null) {
       const oldId = model.namedNetns[oldNetns];
       const newId = model.namedNetns[newNetns];
       const peerName = requireNetnsName(model, ifaceModel.peerNetns);

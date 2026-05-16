@@ -103,7 +103,7 @@ describe("integration / dhcp", () => {
     const deadline = Date.now() + 10_000;
     while (Date.now() < deadline) {
       await new Promise((r) => setTimeout(r, 200));
-      const state = await collectState();
+      const { state } = await collectState();
       const ns = state.netnsByIno[state.namedNetns["dhcp-client-ns"]];
       const iface = ns?.interfaces["veth-client"];
       if (iface && iface.type !== "altname" && iface.addresses.some((a) => a.address === "192.168.99.100")) {
@@ -113,7 +113,7 @@ describe("integration / dhcp", () => {
     }
 
     expect(acquired).toBe(true);
-    const state = await collectState();
+    const { state } = await collectState();
     const ns = state.netnsByIno[state.namedNetns["dhcp-client-ns"]];
     const vethClient = ns.interfaces["veth-client"];
     expect(vethClient.type).not.toBe("altname");

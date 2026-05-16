@@ -15,7 +15,7 @@ import {
 import { getIface, inconsistentModelFailure, requireNetnsName } from "./utils";
 
 const checkVlanPvid = (membership: { vlans: BridgeMemberVlanModel[]; pvid?: number }, context: string) => {
-  if (membership.pvid === undefined) return;
+  if (membership.pvid == null) return;
   if (!membership.vlans.some((v) => v.vlanId === membership.pvid)) {
     throw inconsistentModelFailure(`${context} has pvid ${membership.pvid} which is not in its vlans`);
   }
@@ -47,6 +47,9 @@ const checkRealIfaceAltnames = (netns: string, ns: NamespaceModel, ifaceName: st
 };
 
 const checkVethPeer = (model: NetworkModel, netnsIno: NetnsIno, netns: string, ifaceName: string, iface: InterfaceModelVeth) => {
+  if (iface.peerNetns == null || iface.peerIface == null) {
+    return;
+  }
   if (iface.peerNetns === netnsIno && iface.peerIface === ifaceName) {
     throw inconsistentModelFailure(`Veth ${ifaceName} in namespace ${netns} is its own peer`);
   }

@@ -24,5 +24,8 @@ export const modelToConfig = (model: NetworkModel) => {
   }
   const resolution = reconcile(baseModel, model);
   config.push(...(resolution.actions as NetworkCreateAction[]));
-  return config;
+  return {
+    config,
+    errors: resolution.errors,
+  };
 };

@@ -11,7 +11,7 @@ const runtimeMeta: InterfaceRuntimeMetaMap = {};
 
 export const runActionAndVerify = async (action: NetworkAction) => {
   // Capture state immediately before the action under test
-  const beforeActual = await collectState();
+  const { state: beforeActual } = await collectState();
   applyRuntimeMeta(beforeActual, runtimeMeta);
 
   // Execute the action under test
@@ -22,7 +22,7 @@ export const runActionAndVerify = async (action: NetworkAction) => {
   recordActionMeta(runtimeMeta, action, beforeActual.namedNetns);
 
   // Capture state after
-  const afterActual = await collectState();
+  const { state: afterActual } = await collectState();
   applyRuntimeMeta(afterActual, runtimeMeta);
 
   // Simulate the action on the before-state

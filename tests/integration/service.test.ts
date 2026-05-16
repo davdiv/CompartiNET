@@ -22,7 +22,7 @@ describe("integration / service", () => {
     await reconciler.applyReconciliation();
     unsub();
 
-    const state = await collectState();
+    const { state } = await collectState();
     expect(Object.keys(state.namedNetns)).toContain("svc-ns");
     const svcNs = state.netnsByIno[state.namedNetns["svc-ns"]];
     expect(Object.keys(svcNs.interfaces)).toContain("br0");
@@ -43,7 +43,7 @@ describe("integration / service", () => {
     await reconciler.applyReconciliation();
     unsub();
 
-    const state = await collectState();
+    const { state } = await collectState();
     expect(Object.keys(state.namedNetns)).toContain("nested-ns");
   });
 

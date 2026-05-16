@@ -113,7 +113,7 @@ export const createDhcpClientMachine = (config: DhcpClientServiceSpec, abortSign
         if (parsed.xid !== xid) return;
 
         const msgType = parsed.options[DHCP_OPTION.MESSAGE_TYPE];
-        if (msgType !== undefined && expectedTypes.includes(msgType as number)) {
+        if (msgType != null && expectedTypes.includes(msgType as number)) {
           clearTimeout(timeout);
           removeAbort();
           socket.off("message", handler);

@@ -77,8 +77,8 @@ export interface InterfaceModelBridge extends InterfaceModelBase {
 
 export interface InterfaceModelVeth extends InterfaceModelBase {
   type: "veth";
-  peerNetns: NetnsIno;
-  peerIface: string;
+  peerNetns?: NetnsIno;
+  peerIface?: string;
 }
 
 export interface WireguardConfig {

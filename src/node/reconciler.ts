@@ -16,7 +16,10 @@ export const createReconciler = (features: ReactiveFn<Promise<Feature[]> | Featu
     async () => {
       refreshState.consume();
       getContext(MarkReloadable)();
-      const model = await collectState();
+      const { state: model, errors } = await collectState();
+      if (errors.length > 0) {
+        console.error("State collection errors:", errors);
+      }
       applyRuntimeMeta(model, runtimeMeta);
       serviceManager.applySocketMeta(model);
       return model;

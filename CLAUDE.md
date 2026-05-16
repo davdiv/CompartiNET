@@ -50,6 +50,10 @@ if (Object.hasOwn(obj, key)) {
 
 over unguarded `obj[key]` when `key` is not a known, literal string.
 
+### undefined / null
+
+Null and undefined should always be processed the same way. Don't use `undefined` when comparing, use `null` (`== null` should be used instead of `=== null` or `=== undefined`). When producing values, use undefined.
+
 ## Architecture Overview
 
 CompartiNET is a modular network manager for Linux that uses a "Desired State" vs "Current State" reconciliation pattern.

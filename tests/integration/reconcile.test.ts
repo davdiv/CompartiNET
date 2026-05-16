@@ -15,7 +15,7 @@ describe("integration / full reconcile", () => {
     await exec(["ip", "netns", "add", "test-ns"]);
 
     // 2. Collect the actual system state (now includes test-ns with lo down)
-    const actual = await collectState();
+    const { state: actual } = await collectState();
 
     // 3. Build desired state: bring lo up, add an IP, add a route
     const desired = structuredClone(actual);
@@ -40,7 +40,7 @@ describe("integration / full reconcile", () => {
     }
 
     // 6. Collect state after execution
-    const after = await collectState();
+    const { state: after } = await collectState();
 
     // 7. Assert the real system matches the desired model
     expect(normalizeModel(after)).toEqual(normalizeModel(desired));

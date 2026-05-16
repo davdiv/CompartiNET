@@ -25,8 +25,9 @@ export const isDifferent = ({ current, desired }: { current?: InterfaceModel; de
   if (current.type === "veth") {
     if (desired.type !== "veth") return true;
     const peerIfaceDiff = current.peerIface !== desired.peerIface;
-    if (!currentModel || !desiredModel) return peerIfaceDiff || current.peerNetns !== desired.peerNetns;
-    return peerIfaceDiff || requireNetnsName(currentModel, current.peerNetns) !== requireNetnsName(desiredModel, desired.peerNetns);
+    const peerNetnsDiff =
+      !currentModel || !desiredModel ? current.peerNetns !== desired.peerNetns : requireNetnsName(currentModel, current.peerNetns!) !== requireNetnsName(desiredModel, desired.peerNetns!);
+    return peerIfaceDiff || peerNetnsDiff;
   }
   if (current.type === "altname") {
     return desired.type !== "altname" || current.iface !== desired.iface;
