@@ -44,21 +44,19 @@ import {
 } from "./wireguard";
 import { MoveWirelessPhyAction, applyMoveWirelessPhy, commandForMoveWirelessPhy } from "./wireless";
 
-export type NetworkCreateAction =
+export type ConfigNetworkCreateAction =
   | CreateNamespaceAction
-  | OpenSocketAction
-  | CreateWireguardAction
-  | MoveInterfaceAction
   | MatchHardwareAction
   | CreateVethAction
   | CreateBridgeAction
   | AddAltnameAction
   | AddBridgePortAction
   | AddBridgePortVlanAction
-  | SetWireguardConfigAction
   | AddIpAddressAction
   | SetInterfaceUpAction
   | AddRouteAction;
+
+export type NetworkCreateAction = ConfigNetworkCreateAction | OpenSocketAction | CreateWireguardAction | MoveInterfaceAction | SetWireguardConfigAction;
 
 const applyNetworkCreateHandlers: ActionHandlerMap<NetworkCreateAction> = {
   CreateNamespace: applyCreateNamespace,

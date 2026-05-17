@@ -4,8 +4,6 @@ import { newNetworkModel } from "../model/actions/namespace";
 import { createFeaturesFactory, FeatureHandlerMap } from "./createFeatures";
 import { ServiceContext } from "../services/types";
 
-export { type FeatureHandler, type FeatureHandlerMap } from "./createFeatures";
-
 export const createDesiredModelFromBasicFeatures = (basicFeatures: NetworkCreateAction[]) => {
   const sorted = sortCreateActions([...basicFeatures]);
   // TODO: maybe deduplicate basic actions ?

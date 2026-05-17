@@ -1,11 +1,10 @@
 import { expect } from "vitest";
-import { createDesiredModelFromBasicFeatures } from "../src/common/features";
+import { checkModelConsistency } from "../src/common/model/consistency";
 import { NetworkModel } from "../src/common/model/networkModel";
 import { validate as isModelValid } from "../src/common/model/validator";
 import { modelToConfig } from "../src/common/reconcile/modelToConfig";
-import { validate as isConfigValid } from "../src/node/features/validator";
 import { processFeatures } from "../src/node/features";
-import { checkModelConsistency } from "../src/common/model/consistency";
+import { validate as isConfigValid } from "../src/node/features/validator";
 
 /**
  * Normalizes a network model for comparison by stripping fields that the current
@@ -74,7 +73,7 @@ export const checkReproducibleFromScratch = async (model: NetworkModel) => {
   const { config, errors } = modelToConfig(model);
   expect(errors).toEqual([]);
   await validateConfig(config);
-  const newModel = createDesiredModelFromBasicFeatures(config);
+  const { desiredState: newModel } = await processFeatures(config, undefined!);
   expect(normalizeModel(model)).toEqual(normalizeModel(newModel));
 };
 

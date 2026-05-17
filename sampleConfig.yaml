@@ -99,32 +99,19 @@
 
 # ============================================================
 #    WireGuard Interface
-#    First create the interface in its birth namespace
-#    (where encrypted packets will be sent and received)
-#    then move it in its operating namespace
-#    (where decrypted packets will be)
-#    and set its configuration.
 # ============================================================
-- type: CreateWireguard
-  netns: my-netns
-  iface: wg0
-
-- type: MoveInterface
-  oldNetns: my-netns
-  oldIface: wg0
-  newNetns: "" # default/root namespace
-  newIface: wg0
-
-- type: SetWireguardConfig
+- type: Wireguard
+  birthNetns: my-netns # optional (specify it if different from netns)
+  birthIface: wg0 # optional (useful when birthNetns is specified and iface conflicts with another interface in birthNetns)
   netns: ""
   iface: wg0
   config:
     privateKey: "YOUR_BASE64_PRIVATE_KEY_HERE"
     listenPort: 51820
-    # fwMark: 0          # optional firewall mark
+    fwMark: 0 # optional firewall mark
     peers:
       - publicKey: "PEER_BASE64_PUBLIC_KEY_HERE"
-        # presharedKey: "OPTIONAL_BASE64_PSK_HERE"
+        presharedKey: "OPTIONAL_BASE64_PSK_HERE"
         allowedIPs:
           - family: ipv4
             address: 10.0.0.2
