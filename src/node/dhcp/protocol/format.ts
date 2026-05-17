@@ -1,12 +1,13 @@
 import { BOOTP_HEADER_LENGTH, DHCP_MAGIC_COOKIE, DHCP_OPTION, MIN_DHCP_PACKET_SIZE } from "./constants";
 import type { DhcpInputHeader, DhcpOption, DhcpOptionMap } from "./types";
 import { ipToBytes } from "./ip";
+import { parseMacAddress } from "../../../common/utils/mac";
 
-const macStringToBytes = (buffer: Buffer, offset: number, mac: string): void => {
-  const parts = mac.split(":");
-  for (let i = 0; i < 16; i++) {
-    buffer[offset + i] = i < parts.length ? parseInt(parts[i], 16) : 0;
-  }
+// Writes the 6-byte MAC into the 16-byte BOOTP chaddr slot, zero-padding the remaining 10 bytes.
+const writeChaddr = (buffer: Buffer, offset: number, mac: string): void => {
+  const macBytes = parseMacAddress(mac);
+  buffer.fill(0, offset, offset + 16);
+  buffer.set(macBytes, offset);
 };
 
 const writeNullTerminated = (buffer: Buffer, offset: number, str: string, maxLen: number): void => {
@@ -99,7 +100,7 @@ export function formatDhcpPacket(input: DhcpInputHeader): Buffer {
   ipToBytes(buffer, 16, input.yiaddr);
   ipToBytes(buffer, 20, input.siaddr);
   ipToBytes(buffer, 24, input.giaddr);
-  macStringToBytes(buffer, 28, input.chaddr);
+  writeChaddr(buffer, 28, input.chaddr);
   writeNullTerminated(buffer, 44, input.sname, 64);
   writeNullTerminated(buffer, 108, input.bootFile, 128);
   buffer.writeUInt32BE(magicCookie, BOOTP_HEADER_LENGTH);

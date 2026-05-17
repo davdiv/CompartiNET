@@ -1,11 +1,7 @@
 import { BOOTP_HEADER_LENGTH, DHCP_MAGIC_COOKIE, DHCP_OPTION } from "./constants";
 import type { DhcpHeader, DhcpOptionMap, DhcpOption } from "./types";
 import { bytesToIp } from "./ip";
-
-const macBytesToString = (buffer: Buffer, offset: number, length: number): string =>
-  Array.from(buffer.subarray(offset, offset + length))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join(":");
+import { formatMacAddress } from "../../../common/utils/mac";
 
 const readString = (buffer: Buffer, offset: number, length: number): string => {
   const end = buffer.indexOf(0, offset);
@@ -118,7 +114,7 @@ export function parseDhcpPacket(buffer: Buffer): DhcpHeader {
     yiaddr: HEADER_READERS.yiaddr(buffer),
     siaddr: HEADER_READERS.siaddr(buffer),
     giaddr: HEADER_READERS.giaddr(buffer),
-    chaddr: macBytesToString(buffer, 28, hlen),
+    chaddr: formatMacAddress(buffer, 28, hlen),
     sname: readString(buffer, 44, 64),
     bootFile: readString(buffer, 108, 128),
     magicCookie,

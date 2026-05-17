@@ -1,20 +1,10 @@
 import { Socket } from "node:dgram";
+import { MAC_ADDRESS_LENGTH, parseMacAddress } from "../common/utils/mac";
 import { createNetnsWorker } from "./netnsWorker/create";
 
 const MAGIC_PACKET_HEADER_LENGTH = 6;
 const MAC_ADDRESS_REPETITIONS = 16;
-const MAC_ADDRESS_LENGTH = 6;
 const WOL_PORT = 9;
-
-function parseMacAddress(mac: string): Uint8Array {
-  const bytes = mac.split(/[:-]/).map((b) => parseInt(b, 16));
-
-  if (bytes.length !== MAC_ADDRESS_LENGTH || bytes.some((b) => isNaN(b) || b < 0x00 || b > 0xff)) {
-    throw new Error(`Invalid MAC address: "${mac}"`);
-  }
-
-  return new Uint8Array(bytes);
-}
 
 function buildMagicPacket(macBytes: Uint8Array): Uint8Array {
   const packet = new Uint8Array(MAGIC_PACKET_HEADER_LENGTH + MAC_ADDRESS_REPETITIONS * MAC_ADDRESS_LENGTH);
