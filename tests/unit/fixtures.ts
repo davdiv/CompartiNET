@@ -1,4 +1,6 @@
-import { BridgeMemberModel, InterfaceModel, InterfaceModelAltname, InterfaceModelBridge, NamespaceModel, NetworkModel, RouteModel } from "../../src/common/model/networkModel";
+import { newBridge } from "../../src/common/model/actions/bridge";
+import { newNetns } from "../../src/common/model/actions/namespace";
+import { BridgeMemberModel, InterfaceModel, InterfaceModelAltname, InterfaceModelBridge, NamespaceModel, NetworkModel, RealInterfaceModel, RouteModel } from "../../src/common/model/networkModel";
 import { parseIpAddressModel } from "../../src/common/model/ip";
 
 let testInodeCounter = 1;
@@ -16,11 +18,21 @@ export const createTestModel = (namespaces: { [name: string]: Omit<NamespaceMode
 
 export const ns = (model: NetworkModel, name: string): NamespaceModel => model.netnsByIno[model.namedNetns[name]];
 
-export const createNamespace = (interfaces: Record<string, InterfaceModel> = {}, routes: RouteModel[] = []): NamespaceModel => ({
-  names: [],
-  interfaces,
-  routes,
-  listeningSockets: [],
+export const getRealIface = (model: NetworkModel, netns: string, iface: string): RealInterfaceModel => ns(model, netns).interfaces[iface] as RealInterfaceModel;
+
+// Thin wrappers around the source-of-truth factories in src/common/model/actions/,
+// so model-shape refactors propagate to tests automatically.
+export const createNamespace = (interfaces: Record<string, InterfaceModel> = {}, routes: RouteModel[] = []): NamespaceModel => {
+  const out = newNetns();
+  Object.assign(out.interfaces, interfaces);
+  out.routes = routes;
+  return out;
+};
+
+export const createBridge = (up: boolean = true, addresses: string[] = [], vlanFiltering = false, stp = false): InterfaceModelBridge => ({
+  ...newBridge(vlanFiltering, stp),
+  up,
+  addresses: addresses.map(parseIpAddressModel),
 });
 
 export const createInterface = (up: boolean = true, addresses: string[] = [], bridgeMember?: BridgeMemberModel, altnames: string[] = []): InterfaceModel => ({
@@ -40,17 +52,4 @@ export const createBridgeMember = (bridge: string, vlans: Array<{ vlanId: number
   bridge,
   vlans,
   pvid,
-});
-
-export const createBridge = (up: boolean = true, addresses: string[] = [], vlanFiltering = false, stp = false): InterfaceModelBridge => ({
-  up,
-  addresses: addresses.map(parseIpAddressModel),
-  altnames: [],
-  type: "bridge",
-  vlanFiltering,
-  stp,
-  self: {
-    vlans: [{ vlanId: 1, untagged: true }],
-    pvid: 1,
-  },
 });

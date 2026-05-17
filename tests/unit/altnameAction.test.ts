@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { applyAction } from "../../src/common/model/actions";
 import { applyAddAltname, applyRemoveAltname } from "../../src/common/model/actions/altname";
 import { NetworkModel, RealInterfaceModel } from "../../src/common/model/networkModel";
-import { createTestModel, ns } from "./fixtures";
+import { createAltname, createTestModel, ns } from "./fixtures";
 
 describe("AddAltname action", () => {
   it("adds an altname to an interface", () => {
@@ -22,7 +22,7 @@ describe("AddAltname action", () => {
     applyAction(model, { type: "CreateNamespace", netns: "test-ns" });
     (ns(model, "test-ns").interfaces["lo"] as { up: boolean }).up = true;
     (ns(model, "test-ns").interfaces["lo"] as RealInterfaceModel).altnames = ["loopback0"];
-    ns(model, "test-ns").interfaces["loopback0"] = { type: "altname", iface: "lo" };
+    ns(model, "test-ns").interfaces["loopback0"] = createAltname("lo");
 
     expect(() => applyAddAltname(model, { type: "AddAltname", netns: "test-ns", iface: "lo", altname: "loopback0" })).toThrow("Interface loopback0 already exists in namespace test-ns");
   });
@@ -42,7 +42,7 @@ describe("RemoveAltname action", () => {
     applyAction(model, { type: "CreateNamespace", netns: "test-ns" });
     (ns(model, "test-ns").interfaces["lo"] as { up: boolean }).up = true;
     (ns(model, "test-ns").interfaces["lo"] as RealInterfaceModel).altnames = ["loopback0"];
-    ns(model, "test-ns").interfaces["loopback0"] = { type: "altname", iface: "lo" };
+    ns(model, "test-ns").interfaces["loopback0"] = createAltname("lo");
 
     applyRemoveAltname(model, { type: "RemoveAltname", netns: "test-ns", altname: "loopback0" });
 

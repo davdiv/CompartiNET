@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { applyAction, commandForAction } from "../../src/common/model/actions";
+import { newHardware } from "../../src/common/model/actions/hardware";
 import { newNetns } from "../../src/common/model/actions/namespace";
 import { formatCommand } from "../../src/common/model/commands";
-import { InterfaceModelWireguard, NetworkModel } from "../../src/common/model/networkModel";
+import { InterfaceModelHardware, InterfaceModelWireguard, NetworkModel } from "../../src/common/model/networkModel";
 import { checkIfaceExists } from "../../src/common/model/utils";
 import { reconcile } from "../../src/common/reconcile";
 import { checkReproducibleFromScratch } from "../utils";
-import { createAltname, createBridge, createInterface, createNamespace, createTestModel, ns } from "./fixtures";
+import { createAltname, createBridge, createBridgeMember, createInterface, createNamespace, createTestModel, ns } from "./fixtures";
+
+// Hardware fixture helpers built on top of the source-of-truth `newHardware` factory.
+const hwEth = (up: boolean, device: string = "0000:00:1f.6"): InterfaceModelHardware => ({ ...newHardware("pci", device), up });
+const hwWifi = (up: boolean, device: string = "0000:00:14.3"): InterfaceModelHardware => ({ ...newHardware("pci", device, "phy0"), up });
 
 describe("reconcile", () => {
   const getCommands = (actual: NetworkModel, desired: NetworkModel) => {
@@ -103,36 +108,10 @@ describe("reconcile", () => {
 
   it("should atomically migrate interface namespace and name", () => {
     const actual: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          eth0: {
-            type: "hardware",
-            up: true,
-            altnames: [],
-            addresses: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({ eth0: hwEth(true) }),
     });
     const desired: NetworkModel = createTestModel({
-      ns2: {
-        interfaces: {
-          wan0: {
-            type: "hardware",
-            up: true,
-            altnames: [],
-            addresses: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns2: createNamespace({ wan0: hwEth(true) }),
     });
 
     const commands = getCommands(actual, desired);
@@ -148,36 +127,10 @@ describe("reconcile", () => {
   it("should move interface back to default netns", () => {
     const actual: NetworkModel = createTestModel({
       "": newNetns(),
-      ns1: {
-        interfaces: {
-          eth0: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({ eth0: hwEth(false) }),
     });
     const desired: NetworkModel = createTestModel({
-      "": {
-        interfaces: {
-          eth0: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "": createNamespace({ eth0: hwEth(false) }),
     });
 
     const commands = getCommands(actual, desired);
@@ -189,36 +142,10 @@ describe("reconcile", () => {
 
   it("should handle interface move without renaming", () => {
     const actual: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          eth0: {
-            type: "hardware",
-            up: true,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({ eth0: hwEth(true) }),
     });
     const desired: NetworkModel = createTestModel({
-      ns2: {
-        interfaces: {
-          eth0: {
-            type: "hardware",
-            up: true,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns2: createNamespace({ eth0: hwEth(true) }),
     });
 
     const commands = getCommands(actual, desired);
@@ -233,36 +160,10 @@ describe("reconcile", () => {
 
   it("should handle interface renaming without move", () => {
     const actual: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          eth0: {
-            type: "hardware",
-            up: true,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({ eth0: hwEth(true) }),
     });
     const desired: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          wan0: {
-            type: "hardware",
-            up: true,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({ wan0: hwEth(true) }),
     });
 
     const commands = getCommands(actual, desired);
@@ -275,52 +176,16 @@ describe("reconcile", () => {
 
   it("should handle swapping two interface names", () => {
     const actual: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          eth0: {
-            type: "hardware",
-            up: true,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-          eth1: {
-            type: "hardware",
-            up: true,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1g.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({
+        eth0: hwEth(true),
+        eth1: hwEth(true, "0000:00:1g.6"),
+      }),
     });
     const desired: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          eth1: {
-            type: "hardware",
-            up: true,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1f.6",
-          },
-          eth0: {
-            type: "hardware",
-            up: true,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:1g.6",
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({
+        eth1: hwEth(true),
+        eth0: hwEth(true, "0000:00:1g.6"),
+      }),
     });
 
     const commands = getCommands(actual, desired);
@@ -338,14 +203,10 @@ describe("reconcile", () => {
 
   it("should apply AddBridgePort and set bridgeMember", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(),
-          br0: createBridge(),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(),
+        br0: createBridge(),
+      }),
     });
     applyAction(model, { type: "AddBridgePort", netns: "test-ns", iface: "eth0", bridge: "br0" });
     expect((ns(model, "test-ns").interfaces["eth0"] as import("../../src/common/model/networkModel").RealInterfaceModel).bridgeMember).toEqual({
@@ -357,13 +218,9 @@ describe("reconcile", () => {
 
   it("should apply RemoveBridgePort and clear bridgeMember", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(true, [], { bridge: "br0", vlans: [{ vlanId: 1, untagged: true }], pvid: 1 }),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(true, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
+      }),
     });
     applyAction(model, { type: "RemoveBridgePort", netns: "test-ns", iface: "eth0" });
     expect((ns(model, "test-ns").interfaces["eth0"] as import("../../src/common/model/networkModel").RealInterfaceModel).bridgeMember).toBeUndefined();
@@ -371,24 +228,16 @@ describe("reconcile", () => {
 
   it("should generate command to clear PVID from a VLAN while keeping the VLAN", () => {
     const actual: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(true, [], { bridge: "br0", vlans: [{ vlanId: 20, untagged: true }], pvid: 20 }),
-          br0: createBridge(true, [], true),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(true, [], createBridgeMember("br0", [{ vlanId: 20, untagged: true }], 20)),
+        br0: createBridge(true, [], true),
+      }),
     });
     const desired: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(true, [], { bridge: "br0", vlans: [{ vlanId: 20, untagged: true }] }),
-          br0: createBridge(true, [], true),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(true, [], createBridgeMember("br0", [{ vlanId: 20, untagged: true }])),
+        br0: createBridge(true, [], true),
+      }),
     });
 
     const commands = getCommands(actual, desired);
@@ -405,22 +254,17 @@ describe("reconcile", () => {
     const desired: NetworkModel = createTestModel({
       "": newNetns(),
       ns1: newNetns(),
-      ns2: {
-        interfaces: {
-          lo: newNetns().interfaces.lo,
-          wg0: {
-            type: "wireguard",
-            up: false,
-            mtu: 1420,
-            addresses: [],
-            altnames: [],
-            birthNetns: undefined,
-            config: { peers: [] },
-          },
+      ns2: createNamespace({
+        wg0: {
+          type: "wireguard",
+          up: false,
+          mtu: 1420,
+          addresses: [],
+          altnames: [],
+          birthNetns: undefined,
+          config: { peers: [] },
         },
-        routes: [],
-        listeningSockets: [],
-      },
+      }),
     });
     (ns(desired, "ns2").interfaces["wg0"] as InterfaceModelWireguard).birthNetns = desired.namedNetns.ns1;
 
@@ -434,27 +278,19 @@ describe("reconcile", () => {
 
   it("should create wireguard directly in target netns when birthNetns matches", () => {
     const actual: NetworkModel = createTestModel({
-      "": {
-        interfaces: {},
-        routes: [],
-        listeningSockets: [],
-      },
+      "": createNamespace(),
     });
     const desired: NetworkModel = createTestModel({
-      "": {
-        interfaces: {
-          wg0: {
-            type: "wireguard",
-            up: false,
-            addresses: [],
-            altnames: [],
-            birthNetns: undefined,
-            config: { peers: [] },
-          },
+      "": createNamespace({
+        wg0: {
+          type: "wireguard",
+          up: false,
+          addresses: [],
+          altnames: [],
+          birthNetns: undefined,
+          config: { peers: [] },
         },
-        routes: [],
-        listeningSockets: [],
-      },
+      }),
     });
     (ns(desired, "").interfaces["wg0"] as InterfaceModelWireguard).birthNetns = desired.namedNetns[""];
 
@@ -464,40 +300,10 @@ describe("reconcile", () => {
 
   it("should generate MoveWirelessPhy for netns-immutable wireless hardware", () => {
     const actual: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          wlan0: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:14.3",
-            phy: "phy0",
-            netnsImmutable: true,
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({ wlan0: hwWifi(false) }),
     });
     const desired: NetworkModel = createTestModel({
-      ns2: {
-        interfaces: {
-          wlan0: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:14.3",
-            phy: "phy0",
-            netnsImmutable: true,
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns2: createNamespace({ wlan0: hwWifi(false) }),
     });
 
     const commands = getCommands(actual, desired);
@@ -510,40 +316,10 @@ describe("reconcile", () => {
 
   it("should generate MoveWirelessPhy with rename for wireless hardware", () => {
     const actual: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          wlan0: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:14.3",
-            phy: "phy0",
-            netnsImmutable: true,
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({ wlan0: hwWifi(false) }),
     });
     const desired: NetworkModel = createTestModel({
-      ns2: {
-        interfaces: {
-          wifi0: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:14.3",
-            phy: "phy0",
-            netnsImmutable: true,
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns2: createNamespace({ wifi0: hwWifi(false) }),
     });
 
     const commands = getCommands(actual, desired);
@@ -557,66 +333,14 @@ describe("reconcile", () => {
 
   it("should error when desired state places interfaces from the same phy in different namespaces", () => {
     const actual: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          wlan0: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:14.3",
-            phy: "phy0",
-            netnsImmutable: true,
-          },
-          wlan1: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:14.3",
-            phy: "phy0",
-            netnsImmutable: true,
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({
+        wlan0: hwWifi(false),
+        wlan1: hwWifi(false),
+      }),
     });
     const desired: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          wlan0: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:14.3",
-            phy: "phy0",
-            netnsImmutable: true,
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
-      ns2: {
-        interfaces: {
-          wlan1: {
-            type: "hardware",
-            up: false,
-            addresses: [],
-            altnames: [],
-            hardwareBus: "pci",
-            hardwareDevice: "0000:00:14.3",
-            phy: "phy0",
-            netnsImmutable: true,
-          },
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({ wlan0: hwWifi(false) }),
+      ns2: createNamespace({ wlan1: hwWifi(false) }),
     });
 
     const { actions, errors } = reconcile(actual, desired);
@@ -627,24 +351,16 @@ describe("reconcile", () => {
 
   it("should generate AddAltname and RemoveAltname commands", () => {
     const actual: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(true, [], undefined, ["eth0-old"]),
-          "eth0-old": createAltname("eth0"),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(true, [], undefined, ["eth0-old"]),
+        "eth0-old": createAltname("eth0"),
+      }),
     });
     const desired: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(true, [], undefined, ["eth0-new"]),
-          "eth0-new": createAltname("eth0"),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(true, [], undefined, ["eth0-new"]),
+        "eth0-new": createAltname("eth0"),
+      }),
     });
 
     const commands = getCommands(actual, desired);
@@ -656,14 +372,10 @@ describe("reconcile", () => {
 
   it("should resolve altname via checkIfaceExists", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(true, [], undefined, ["eth0-alt"]),
-          "eth0-alt": createAltname("eth0"),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(true, [], undefined, ["eth0-alt"]),
+        "eth0-alt": createAltname("eth0"),
+      }),
     });
     const { ifaceModel } = checkIfaceExists(model, "test-ns", "eth0-alt");
     expect(ifaceModel.type).toBe("unknown");
@@ -671,19 +383,11 @@ describe("reconcile", () => {
 
   it("should migrate altnames when moving interface across namespaces", () => {
     const model: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          eth0: createInterface(false, [], undefined, ["eth0-alt"]),
-          "eth0-alt": createAltname("eth0"),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
-      ns2: {
-        interfaces: {},
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({
+        eth0: createInterface(false, [], undefined, ["eth0-alt"]),
+        "eth0-alt": createAltname("eth0"),
+      }),
+      ns2: createNamespace(),
     });
     applyAction(model, { type: "MoveInterface", oldNetns: "ns1", oldIface: "eth0", newNetns: "ns2", newIface: "eth0" });
     expect(ns(model, "ns1").interfaces["eth0"]).toBeUndefined();
@@ -694,14 +398,10 @@ describe("reconcile", () => {
 
   it("should update altname references when renaming interface", () => {
     const model: NetworkModel = createTestModel({
-      ns1: {
-        interfaces: {
-          eth0: createInterface(false, [], undefined, ["eth0-alt"]),
-          "eth0-alt": createAltname("eth0"),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      ns1: createNamespace({
+        eth0: createInterface(false, [], undefined, ["eth0-alt"]),
+        "eth0-alt": createAltname("eth0"),
+      }),
     });
     applyAction(model, { type: "MoveInterface", oldNetns: "ns1", oldIface: "eth0", newNetns: "ns1", newIface: "wan0" });
     expect(ns(model, "ns1").interfaces["eth0"]).toBeUndefined();

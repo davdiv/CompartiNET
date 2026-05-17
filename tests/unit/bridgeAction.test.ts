@@ -8,15 +8,13 @@ import {
   applyRemoveBridgePortVlan,
   applySetBridgeVlanFiltering,
 } from "../../src/common/model/actions/bridge";
-import { InterfaceModelBridge, NetworkModel, RealInterfaceModel } from "../../src/common/model/networkModel";
-import { createBridge, createBridgeMember, createInterface, createNamespace, createTestModel, ns } from "./fixtures";
-
-const getRealIface = (model: NetworkModel, netns: string, iface: string) => ns(model, netns).interfaces[iface] as RealInterfaceModel;
+import { InterfaceModelBridge, NetworkModel } from "../../src/common/model/networkModel";
+import { createBridge, createBridgeMember, createInterface, createNamespace, createTestModel, getRealIface, ns } from "./fixtures";
 
 describe("CreateBridge action", () => {
   it("creates a bridge", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": { interfaces: {}, routes: [], listeningSockets: [] },
+      "test-ns": createNamespace(),
     });
     applyCreateBridge(model, { type: "CreateBridge", netns: "test-ns", iface: "br0", vlanFiltering: true, stp: false });
     expect(ns(model, "test-ns").interfaces["br0"]).toMatchInlineSnapshot(`
@@ -44,7 +42,7 @@ describe("CreateBridge action", () => {
 
   it("throws when bridge already exists", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": { interfaces: { br0: createBridge() }, routes: [], listeningSockets: [] },
+      "test-ns": createNamespace({ br0: createBridge() }),
     });
     expect(() => applyCreateBridge(model, { type: "CreateBridge", netns: "test-ns", iface: "br0" })).toThrow("already exists");
   });
@@ -53,7 +51,7 @@ describe("CreateBridge action", () => {
 describe("DeleteBridge action", () => {
   it("deletes a bridge", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": { interfaces: { br0: createBridge() }, routes: [], listeningSockets: [] },
+      "test-ns": createNamespace({ br0: createBridge() }),
     });
     applyDeleteBridge(model, { type: "DeleteBridge", netns: "test-ns", iface: "br0" });
     expect(ns(model, "test-ns").interfaces["br0"]).toBeUndefined();
@@ -61,15 +59,11 @@ describe("DeleteBridge action", () => {
 
   it("clears bridgeMember on member interfaces when deleting a bridge", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          br0: createBridge(),
-          eth0: createInterface(false, [], createBridgeMember("br0")),
-          eth1: createInterface(false, [], createBridgeMember("br0")),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        br0: createBridge(),
+        eth0: createInterface(false, [], createBridgeMember("br0")),
+        eth1: createInterface(false, [], createBridgeMember("br0")),
+      }),
     });
     applyDeleteBridge(model, { type: "DeleteBridge", netns: "test-ns", iface: "br0" });
     expect(ns(model, "test-ns").interfaces["br0"]).toBeUndefined();
@@ -79,14 +73,14 @@ describe("DeleteBridge action", () => {
 
   it("throws when bridge does not exist", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": { interfaces: {}, routes: [], listeningSockets: [] },
+      "test-ns": createNamespace(),
     });
     expect(() => applyDeleteBridge(model, { type: "DeleteBridge", netns: "test-ns", iface: "br0" })).toThrow("does not exist");
   });
 
   it("throws when interface is not a bridge", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": { interfaces: { eth0: createInterface() }, routes: [], listeningSockets: [] },
+      "test-ns": createNamespace({ eth0: createInterface() }),
     });
     expect(() => applyDeleteBridge(model, { type: "DeleteBridge", netns: "test-ns", iface: "eth0" })).toThrow("not a bridge");
   });
@@ -107,14 +101,14 @@ describe("AddBridgePort action", () => {
 
   it("throws when bridge does not exist", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": { interfaces: { eth0: createInterface(false) }, routes: [], listeningSockets: [] },
+      "test-ns": createNamespace({ eth0: createInterface(false) }),
     });
     expect(() => applyAddBridgePort(model, { type: "AddBridgePort", netns: "test-ns", iface: "eth0", bridge: "br0" })).toThrow("does not exist");
   });
 
   it("throws when target is not a bridge", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": { interfaces: { eth0: createInterface(false), br0: createInterface(false) }, routes: [], listeningSockets: [] },
+      "test-ns": createNamespace({ eth0: createInterface(false), br0: createInterface(false) }),
     });
     expect(() => applyAddBridgePort(model, { type: "AddBridgePort", netns: "test-ns", iface: "eth0", bridge: "br0" })).toThrow("not a bridge");
   });
@@ -133,7 +127,7 @@ describe("RemoveBridgePort action", () => {
 describe("SetBridgeVlanFiltering action", () => {
   it("sets vlan filtering on a bridge", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": { interfaces: { br0: createBridge(true, [], false) }, routes: [], listeningSockets: [] },
+      "test-ns": createNamespace({ br0: createBridge(true, [], false) }),
     });
     applySetBridgeVlanFiltering(model, { type: "SetBridgeVlanFiltering", netns: "test-ns", iface: "br0", vlanFiltering: true });
     expect((ns(model, "test-ns").interfaces["br0"] as InterfaceModelBridge).vlanFiltering).toBe(true);
@@ -143,13 +137,9 @@ describe("SetBridgeVlanFiltering action", () => {
 describe("AddBridgePortVlan action", () => {
   it("adds a new tagged VLAN to a bridge port", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
+      }),
     });
     applyAddBridgePortVlan(model, { type: "AddBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 10, untagged: false });
     expect(getRealIface(model, "test-ns", "eth0").bridgeMember!.vlans).toEqual([
@@ -160,13 +150,9 @@ describe("AddBridgePortVlan action", () => {
 
   it("adds a new untagged VLAN with pvid", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
+      }),
     });
     applyAddBridgePortVlan(model, { type: "AddBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 20, untagged: true, pvid: true });
     const bm = getRealIface(model, "test-ns", "eth0").bridgeMember!;
@@ -179,13 +165,9 @@ describe("AddBridgePortVlan action", () => {
 
   it("updates the tagged flag on an existing VLAN", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
+      }),
     });
     applyAddBridgePortVlan(model, { type: "AddBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 1, untagged: false });
     const bm = getRealIface(model, "test-ns", "eth0").bridgeMember!;
@@ -195,13 +177,9 @@ describe("AddBridgePortVlan action", () => {
 
   it("clears pvid when re-adding an existing VLAN without pvid flag", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 20, untagged: true }], 20)),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 20, untagged: true }], 20)),
+      }),
     });
     applyAddBridgePortVlan(model, { type: "AddBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 20, untagged: true });
     const bm = getRealIface(model, "test-ns", "eth0").bridgeMember!;
@@ -252,24 +230,20 @@ describe("AddBridgePortVlan action", () => {
 describe("RemoveBridgePortVlan action", () => {
   it("removes a VLAN from a bridge port", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(
-            false,
-            [],
-            createBridgeMember(
-              "br0",
-              [
-                { vlanId: 1, untagged: true },
-                { vlanId: 10, untagged: false },
-              ],
-              1,
-            ),
+      "test-ns": createNamespace({
+        eth0: createInterface(
+          false,
+          [],
+          createBridgeMember(
+            "br0",
+            [
+              { vlanId: 1, untagged: true },
+              { vlanId: 10, untagged: false },
+            ],
+            1,
           ),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+        ),
+      }),
     });
     applyRemoveBridgePortVlan(model, { type: "RemoveBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 10 });
     expect(getRealIface(model, "test-ns", "eth0").bridgeMember!.vlans).toEqual([{ vlanId: 1, untagged: true }]);
@@ -277,13 +251,9 @@ describe("RemoveBridgePortVlan action", () => {
 
   it("clears pvid when removing the PVID VLAN", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
+      }),
     });
     applyRemoveBridgePortVlan(model, { type: "RemoveBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 1 });
     expect(getRealIface(model, "test-ns", "eth0").bridgeMember!.pvid).toBeUndefined();
@@ -291,13 +261,9 @@ describe("RemoveBridgePortVlan action", () => {
 
   it("does nothing when VLAN does not exist on the port", () => {
     const model: NetworkModel = createTestModel({
-      "test-ns": {
-        interfaces: {
-          eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
-        },
-        routes: [],
-        listeningSockets: [],
-      },
+      "test-ns": createNamespace({
+        eth0: createInterface(false, [], createBridgeMember("br0", [{ vlanId: 1, untagged: true }], 1)),
+      }),
     });
     applyRemoveBridgePortVlan(model, { type: "RemoveBridgePortVlan", netns: "test-ns", iface: "eth0", vlanId: 99 });
     expect(getRealIface(model, "test-ns", "eth0").bridgeMember!.vlans).toEqual([{ vlanId: 1, untagged: true }]);
