@@ -1,10 +1,10 @@
-import { chmod, cp, writeFile } from "fs/promises";
-import { defineConfig } from "vite";
 import babel from "@rolldown/plugin-babel";
+import { readdirSync } from "node:fs";
+import { chmod, cp, writeFile } from "node:fs/promises";
 import { signaliumPreset } from "signalium/transform";
+import { defineConfig } from "vite";
 import packageJson from "./package.json";
 import { schemaPlugin } from "./vite.schemaplugin";
-import { readdirSync } from "fs";
 
 const commands = new Set(readdirSync("./src/node/cli"));
 const externalCommands = new Set([...commands].filter((cmd) => cmd.startsWith("compartinet")));

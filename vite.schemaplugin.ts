@@ -1,9 +1,9 @@
 import Ajv from "ajv";
 import standaloneCode from "ajv/dist/standalone";
-import { writeFile } from "fs/promises";
-import { resolve } from "path";
+import { writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import tjs from "typescript-json-schema";
-import { fileURLToPath } from "url";
 import { Plugin } from "vite";
 
 const networkModelFile = fileURLToPath(new URL("./src/common/model/networkModel.ts", import.meta.url));
